@@ -3,3 +3,4 @@ pyTelegramBotAPI
 mongoengine
 python-dotenv
 requests
+gunicorn
