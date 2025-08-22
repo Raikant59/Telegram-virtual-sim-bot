@@ -1,4 +1,4 @@
-from bot.handlers import start, buy, status, balance, back, admin_balance, admin_transactions,inline_services, purchase,cancel
+from bot.handlers import start, buy, status, balance, back, admin_balance, admin_transactions,inline_services, purchase,cancel,admin_panel
 
 def command_handlers(dispatcher):
     dispatcher.register_command("start", start.handle)
@@ -7,7 +7,8 @@ def command_handlers(dispatcher):
     dispatcher.register_command("add", admin_balance.handle)
     dispatcher.register_command("cut", admin_balance.handle)
     dispatcher.register_command("trnx", admin_transactions.handle)
-    dispatcher.register_command("show_server", inline_services.show_server)  
+    dispatcher.register_command("show_server", inline_services.show_server)
+    dispatcher.register_command("admin", admin_panel.handle)
 
 def callback_handlers(dispatcher):
     # example: dispatcher.register_callback("confirm_buy", buy.confirm_callback)
