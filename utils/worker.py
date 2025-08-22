@@ -3,6 +3,9 @@ import time
 import requests
 import datetime
 from models.otpPending import OtpPending
+from models.otp import OtpMessage
+from models.order import Order
+from models.transaction import Transaction
 
 bot_instance = None
 
@@ -10,11 +13,9 @@ bot_instance = None
 # Event to signal new OTP
 new_otp_event = threading.Event()
 lock = threading.Lock()
+
 def otp_worker():
     while True:
-        # Wait until there is new OTP
-
-        print("Waiting for new OTP...")
         new_otp_event.wait()
         while True:
             with lock:
@@ -25,53 +26,104 @@ def otp_worker():
 
                 for otp in pending_otps:
                     elapsed_time = (datetime.datetime.utcnow() - otp.created_at).total_seconds()
+                    # Timeout: cancel at provider and refund user/order
                     if otp.cancelTime and elapsed_time > otp.cancelTime:
+                        try:
+                            # provider cancel (best-effort)
+                            if otp.cancel_url:
+                                url = otp.cancel_url.format(id=otp.order_id)
+                                requests.get(url, timeout=5)
+                        except Exception as e:
+                            pass
+
+                        # Refund logic (if linked order exists)
+                        order = Order.objects(provider_order_id=otp.order_id).first()
+                        if order and order.status not in ("cancelled", "refunded"):
+                            user = order.user
+                            user.balance += order.price
+                            user.save()
+                            Transaction(
+                                user=user,
+                                type="credit",
+                                amount=order.price,
+                                closing_balance=user.balance,
+                                note=f"timeout_refund:{order.id}"
+                            ).save()
+                            order.status = "cancelled"
+                            order.save()
+
                         try:
                             bot_instance.send_message(
                                 chat_id=otp.chat_id,
-                                text=f"OTP request for {otp.phone} cancelled (timeout)."
+                                text=f"OTP request for {otp.phone} cancelled (timeout). Refund processed if applicable."
                             )
-                            url = otp.cancel_url.format(id=otp.order_id)
-                            resp = requests.get(url, timeout=5)
                         except Exception as e:
-                            print(f"Telegram send failed: {e}")
                             pass
+
                         otp.delete()
                         continue
-                   
 
+                    # Poll the provider status URL
                     try:
                         url = otp.url.format(id=otp.order_id)
                         resp = requests.get(url, timeout=5)
                         if otp.responseType == "Text":
-                            raw = resp.text
-                            status = raw.split(":")[0]
-                            print(f"Status: {status}")
-                            if status == "STATUS_OK":
+                            raw = resp.text.strip()
+                            # Expected format could be: STATUS_OK:OTP or STATUS:...
+                            if raw.startswith("STATUS_OK") or raw.startswith("ACCESS_OTP") or "OTP" in raw:
+                                # heuristics to extract OTP token
+                                parts = raw.split(":")
+                                otp_token = parts[1] if len(parts) > 1 else raw
+                                # Save OTP to DB
+                                order = Order.objects(provider_order_id=otp.order_id).first()
+                                OtpMessage(
+                                    order=order,
+                                    user=otp.user if hasattr(otp, "user") else None,
+                                    otp=otp_token,
+                                    raw={"text": raw}
+                                ).save()
+
+                                # update order status
+                                if order:
+                                    order.status = "completed"
+                                    order.save()
+
+                                # notify user chat
                                 bot_instance.send_message(
                                     chat_id=otp.chat_id,
-                                    text=f"OTP request for {otp.phone} is {raw.split(':')[1]}"
+                                    text=f"✅ OTP received for +{otp.phone}:\n<code>{otp_token}</code>"
                                 )
+
                                 otp.delete()
                         else:
                             res = resp.json()
-                            
+                            # Provider-specific: check for status/otp fields
+                            status = res.get("status") or res.get("state")
+                            otp_token = res.get("otp") or res.get("sms") or None
+                            if status in ("ok", "STATUS_OK", "SUCCESS") or otp_token:
+                                # Save OTP message
+                                order = Order.objects(provider_order_id=otp.order_id).first()
+                                OtpMessage(
+                                    order=order,
+                                    user=otp.user if hasattr(otp, "user") else None,
+                                    otp=otp_token or str(res),
+                                    raw=res
+                                ).save()
 
-                            if res.get("status") == "Recieved":
-                                sms_list = res.get("sms", [])
-                                if sms_list:
-                                    code = sms_list[0].get("code")
-                                else:
-                                    code = None
+                                if order:
+                                    order.status = "completed"
+                                    order.save()
+
                                 bot_instance.send_message(
                                     chat_id=otp.chat_id,
-                                    text=f"OTP request for {otp.phone} is {code}"
+                                    text=f"✅ OTP received for +{otp.phone}:\n<code>{otp_token}</code>"
                                 )
                                 otp.delete()
                     except Exception as e:
-                        print(f"Error fetching OTP URL {otp.url}: {e}")
+                        # ignore transient polling failures
                         pass
-            time.sleep(5)
+            # small sleep to avoid tight loop
+            time.sleep(1)
 
 def notify_new_otp():
     new_otp_event.set()

@@ -214,17 +214,20 @@ block content %}
       <input
         type="url"
         name="next_number_url"
+        required
         placeholder="https://api.myservice.com/nextNumber" />
 
       <label>Cancel URL</label>
       <input
         type="url"
         name="cancel_url"
+        required
         placeholder="https://api.myservice.com/cancel" />
 
+      <label>Success Keyword</label>
       <input
         type="text"
-        name="successKeyword"
+        name="success_keyword"
         required
         placeholder="E.g. STATUS_OK" />
 
@@ -232,7 +235,7 @@ block content %}
       <input
         type="number"
         name="auto_cancel_time"
-        value="5"
+        value="20"
         placeholder="Default: 5" />
 
       <label>Retry Time (seconds)</label>

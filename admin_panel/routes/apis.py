@@ -15,7 +15,7 @@ def apis():
             get_status_url = request.form.get("get_status_url")
             next_number_url = request.form.get("next_number_url")
             cancel_url = request.form.get("cancel_url")
-            success_keyword = request.form.get("successKeyword")
+            success_keyword = request.form.get("success_keyword")
 
             server = Server.objects(id=server_id).first()
             if server:
@@ -26,7 +26,7 @@ def apis():
                     get_status_url=get_status_url,
                     next_number_url=next_number_url,
                     cancel_url=cancel_url,
-                    sucessKeyword=success_keyword
+                    success_keyword=success_keyword
                 ).save()
 
         elif action == "delete":

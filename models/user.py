@@ -1,9 +1,11 @@
-from mongoengine import Document, StringField, DateTimeField, IntField, FloatField
 import datetime
+
+from mongoengine import Document, StringField, DateTimeField, FloatField, BooleanField
 
 class User(Document):
     telegram_id = StringField(required=True, unique=True)
     username = StringField()
-    balance = IntField(default=0)
+    balance = FloatField(default=0.0)
     total_recharged = FloatField(default=0)
+    blocked = BooleanField(default=False) # new
     created_at = DateTimeField(default=datetime.datetime.utcnow)

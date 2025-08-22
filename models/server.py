@@ -20,7 +20,7 @@ class ConnectApi(Document):
     get_number_url = URLField(required=True)
     get_status_url = URLField(required=True)
 
-    sucessKeyword = StringField(required=True)
+    success_keyword = StringField(required=True)
 
     next_number_url = URLField(required=True)
     cancel_url = URLField(required=True)

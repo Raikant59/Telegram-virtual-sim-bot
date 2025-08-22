@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}User Transactions{% endblock %}
+
+{% block content %}
+<style>
+.wrap {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 0 10px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.top h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.btn {
+  padding: 8px 12px;
+  background: #3498db;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background: #2980b9;
+}
+
+/* Table */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+th, td {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+th {
+  background: #fafafa;
+  font-weight: 700;
+}
+
+.type-credit {
+  color: #27ae60;
+  font-weight: 700;
+}
+
+.type-debit {
+  color: #e74c3c;
+  font-weight: 700;
+}
+
+.no-data {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin: 18px 0;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pagination a {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #f0f0f0;
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.pagination a:hover {
+  background: #3498db;
+  color: #fff;
+}
+
+.pagination .current {
+  background: #3498db;
+  color: #fff;
+}
+
+/* Mobile */
+@media(max-width: 600px){
+  th, td { padding: 10px; font-size: 13px; }
+  .top { flex-direction: column; align-items: flex-start; }
+  .top h2 { margin-bottom: 6px; }
+}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <h2>💳 Transactions for {{ user.username or user.telegram_id }}</h2>
+    <a class="btn" href="{{ url_for('users.user_profile', user_id=user.id) }}">Back to Profile</a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Closing Balance</th>
+          <th>Note</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if trnx %}
+          {% for t in trnx %}
+          <tr>
+            <td>{{ t.index }}</td>
+            <td class="type-{{ t.type }}">{{ t.type }}</td>
+            <td>₹ {{ '%.2f'|format(t.amount or 0.0) }}</td>
+            <td>₹ {{ '%.2f'|format(t.closing_balance or 0.0) }}</td>
+            <td>{{ t.note or '—' }}</td>
+            <td>{{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '—' }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="6" class="no-data">No transactions found.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if total_pages > 1 %}
+  <div class="pagination">
+    {% if page > 1 %}
+      <a href="{{ url_for('users.view_transactions', user_id=user.id, page=page-1) }}">&laquo; Prev</a>
+    {% endif %}
+    {% for p in range(1, total_pages+1) %}
+      <a href="{{ url_for('users.view_transactions', user_id=user.id, page=p) }}" class="{% if p==page %}current{% endif %}">{{ p }}</a>
+    {% endfor %}
+    {% if page < total_pages %}
+      <a href="{{ url_for('users.view_transactions', user_id=user.id, page=page+1) }}">Next &raquo;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
