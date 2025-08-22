@@ -1,15 +1,13 @@
-from mongoengine import Document, StringField, ReferenceField, BooleanField, ListField, URLField, CASCADE, IntField, FloatField
+from mongoengine import Document, StringField, ReferenceField, BooleanField, ListField, URLField, CASCADE, IntField, FloatField,UUIDField
 
 import cuid
 
 class Server(Document):
     name = StringField(required=True, unique=True)
-    id = StringField(required=True, unique=True, default=cuid.cuid)
     country = StringField(required=True)
-    
+
     def __str__(self):
         return self.name
-
 
 class ConnectApi(Document):
     server = ReferenceField(Server, reverse_delete_rule=CASCADE)
@@ -36,7 +34,7 @@ class ConnectApi(Document):
 class Service(Document):
     server = ReferenceField(Server, reverse_delete_rule=CASCADE)
 
-    service_id = StringField(required=True, unique=True, default=cuid.cuid)
+    service_id = StringField(required=True, unique=True, default=lambda: cuid.cuid())
     name = StringField(required=True)
     logo = URLField(required=True)
     code = StringField(required=True)

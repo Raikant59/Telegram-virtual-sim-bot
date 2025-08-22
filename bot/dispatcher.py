@@ -1,15 +1,18 @@
-from bot.groups import command_handlers, callback_handlers
+from bot.groups import command_handlers, callback_handlers,inline_handlers
 
 class Dispatcher:
     def __init__(self):
         self.command_handlers = {}
         self.callback_handlers = {}
-
+        self.inline_handlers = []
     def register_command(self, cmd, func):
         self.command_handlers[cmd] = func
 
     def register_callback(self, data_key, func):
         self.callback_handlers[data_key] = func
+    
+    def register_inline(self, func):
+        self.inline_handlers.append(func)
 
     def handle_update(self, update, bot):
         """Manually route updates to correct handler"""
@@ -27,6 +30,9 @@ class Dispatcher:
             prefix = data.split(":")[0]
             if prefix in self.callback_handlers:
                 self.callback_handlers[prefix](bot, update["callback_query"])
+        elif "inline_query" in update:  # ✅ handle inline queries
+            for func in self.inline_handlers:
+                func(bot, update["inline_query"])
 
 # global dispatcher instance
 dispatcher = Dispatcher()
@@ -34,3 +40,4 @@ dispatcher = Dispatcher()
 # Register groups
 command_handlers(dispatcher)
 callback_handlers(dispatcher)
+inline_handlers(dispatcher)

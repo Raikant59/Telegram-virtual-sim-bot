@@ -1,0 +1,332 @@
+{% extends "base.html" %} {% block title %}Manage Connect APIs{% endblock %} {%
+block content %}
+<style>
+  body {
+    font-family: "Segoe UI", sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+  }
+  header {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+    border-radius: 0 0 20px 20px;
+  }
+  main {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  .card h2 {
+    margin-top: 0;
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  label {
+    font-weight: 600;
+    display: block;
+    margin: 12px 0 6px;
+    color: #444;
+    font-size: 14px;
+  }
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    font-size: 14px;
+    background: #fafafa;
+    transition: border 0.2s;
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #27ae60;
+    outline: none;
+    background: #fff;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+  button {
+    background: #27ae60;
+    color: #fff;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+  }
+  button:hover {
+    background: #219150;
+    transform: translateY(-2px);
+  }
+  .delete-btn {
+    background: #e74c3c;
+    margin-left: 10px;
+  }
+  .delete-btn:hover {
+    background: #c0392b;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  ul li {
+    background: #f9fafb;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+  }
+
+  /* Checkbox aligned left */
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+
+    margin: 12px 0;
+  }
+  /* Hidden headers by default */
+  #headers-wrapper {
+    display: none;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  th,
+  td {
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    background: #27ae60;
+    color: white;
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) {
+    background: #f9fafb;
+  }
+
+  .copy-text {
+    cursor: pointer;
+    color: #2980b9;
+    text-decoration: underline;
+  }
+
+  .copy-text:hover {
+    color: #1a5276;
+  }
+</style>
+
+<header>
+  <h1>🔌 Manage Connect APIs</h1>
+</header>
+<main>
+  <!-- Add API Form -->
+  <div class="card">
+    <h2>➕ Add API</h2>
+    <form method="POST">
+      <input type="hidden" name="action" value="add" />
+
+      <label>API Name *</label>
+      <input type="text" name="api_name" required placeholder="Example: 5sim" />
+
+      <label>Server *</label>
+      <select name="server_id" required>
+        {% for server in servers %}
+        <option value="{{ server.id }}">
+          {{ server.name }} ({{ server.country }})
+        </option>
+        {% endfor %}
+      </select>
+
+      <div class="checkbox-row">
+        <input
+          type="checkbox"
+          id="use_headers"
+          name="use_headers"
+          style="width: auto" />
+        <label for="use_headers" style="margin: 0; font-weight: 500"
+          >Does your API use Authorization Headers?</label
+        >
+      </div>
+
+      <div id="headers-wrapper">
+        <label>Headers (comma separated key:value)</label>
+        <textarea
+          id="headers"
+          name="headers"
+          placeholder="Authorization: Bearer xxx, X-Api-Key: yyy"></textarea>
+      </div>
+
+      <label>Response Type</label>
+      <select name="response_type">
+        <option value="Text">Text</option>
+        <option value="JSON">JSON</option>
+      </select>
+
+      <label>Get Number URL *</label>
+      <input
+        type="url"
+        name="get_number_url"
+        required
+        placeholder="https://api.myservice.com/getNumber" />
+
+      <label>Get Status URL *</label>
+      <input
+        type="url"
+        name="get_status_url"
+        required
+        placeholder="https://api.myservice.com/getStatus" />
+
+      <label>Next Number URL</label>
+      <input
+        type="url"
+        name="next_number_url"
+        placeholder="https://api.myservice.com/nextNumber" />
+
+      <label>Cancel URL</label>
+      <input
+        type="url"
+        name="cancel_url"
+        placeholder="https://api.myservice.com/cancel" />
+
+      <input
+        type="text"
+        name="successKeyword"
+        required
+        placeholder="E.g. STATUS_OK" />
+
+      <label>Auto Cancel Time (minutes)</label>
+      <input
+        type="number"
+        name="auto_cancel_time"
+        value="5"
+        placeholder="Default: 5" />
+
+      <label>Retry Time (seconds)</label>
+      <input
+        type="number"
+        name="retry_time"
+        value="0"
+        placeholder="Default: 0" />
+
+      <button type="submit"><i class="fa-solid fa-save"></i> Save API</button>
+    </form>
+  </div>
+
+  <!-- Current APIs -->
+  <div class="card">
+    <h2>📋 Current APIs</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>API Name</th>
+            <th>Server</th>
+            <th>Response Type</th>
+            <th>Get Number URL</th>
+            <th>Get Status URL</th>
+            <th>Next Number URL</th>
+            <th>Cancel URL</th>
+            <th>Success Keyword</th>
+            <th>Auto Cancel Time</th>
+            <th>Retry Time</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for api in apis %}
+          <tr>
+            <td>{{ api.api_name }}</td>
+            <td>{{ api.server.name }}</td>
+            <td>{{ api.response_type }}</td>
+            <td>
+              <span class="copy-text" data-full="{{ api.get_number_url }}">
+                {{ api.get_number_url|truncate(20, True, '...') }}
+              </span>
+            </td>
+            <td>
+              <span class="copy-text" data-full="{{ api.get_status_url }}">
+                {{ api.get_status_url|truncate(20, True, '...') }}
+              </span>
+            </td>
+            <td>
+              <span class="copy-text" data-full="{{ api.next_number_url }}">
+                {{ api.next_number_url|truncate(20, True, '...') }}
+              </span>
+            </td>
+            <td>
+              <span class="copy-text" data-full="{{ api.cancel_url }}">
+                {{ api.cancel_url|truncate(20, True, '...') }}
+              </span>
+            </td>
+            <td>{{ api.successKeyword }}</td>
+            <td>{{ api.auto_cancel_time }}</td>
+            <td>{{ api.retry_time }}</td>
+            <td>
+              <form method="POST" style="display: inline">
+                <input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="api_id" value="{{ api.id }}" />
+                <button type="submit" class="delete-btn">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+  const useHeadersCheckbox = document.getElementById("use_headers");
+  const headersWrapper = document.getElementById("headers-wrapper");
+
+  useHeadersCheckbox.addEventListener("change", function () {
+    headersWrapper.style.display = this.checked ? "block" : "none";
+  });
+  document.querySelectorAll(".copy-text").forEach((el) => {
+    el.addEventListener("click", () => {
+      const fullUrl = el.dataset.full;
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        
+      });
+    });
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f0f2f5;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #2c3e50;
+      color: #ecf0f1;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0; /* default for desktop */
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar h1 {
+      font-size: 18px;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar nav {
+      flex-grow: 1;
+      padding: 15px 0;
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 12px 20px;
+      color: #ecf0f1;
+      text-decoration: none;
+      font-weight: 500;
+      border-left: 4px solid transparent;
+      transition: 0.2s;
+    }
+
+    .sidebar nav a i {
+      margin-right: 10px;
+    }
+
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      background: #34495e;
+      border-left: 4px solid #1abc9c;
+    }
+
+    /* Collapse Button */
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: #2c3e50;
+      font-size: 20px;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+
+    /* Main Content */
+    .content {
+      margin-left: 240px;
+      flex-grow: 1;
+      padding: 20px;
+      transition: margin-left 0.3s, margin-right 0.3s;
+    }
+
+    /* Collapsed desktop */
+    .collapsed .sidebar {
+      width: 60px;
+    }
+
+    .collapsed .sidebar h1 {
+      display: none;
+    }
+
+    .collapsed .sidebar nav a {
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .collapsed .sidebar nav a i {
+      margin: 0;
+    }
+
+    .collapsed .content {
+      margin-left: 60px;
+    }
+
+    /* Mobile behavior */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 240px;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        right: -240px; /* hidden by default */
+        left: auto; /* override desktop */
+      }
+
+      .sidebar.show {
+        right: 0; /* slide in from right */
+      }
+
+      .content {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+
+      .toggle-btn {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        z-index: 1100;
+        background: #1abc9c;
+        color: white;
+        padding: 8px 10px;
+        border-radius: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h1>📊 Admin</h1>
+    <nav>
+      <a href="{{ url_for('dashboard.dashboard') }}" class="{% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
+        <i class="fa-solid fa-house"></i> <span class="label">Dashboard</span>
+      </a>
+      <a href="{{ url_for('servers.servers') }}" class="{% if request.endpoint == 'servers.servers' %}active{% endif %}">
+        <i class="fa-solid fa-server"></i> <span class="label">Servers</span>
+      </a>
+      <a href="{{ url_for('services.services') }}" class="{% if request.endpoint == 'services.services' %}active{% endif %}">
+        <i class="fa-solid fa-box"></i> <span class="label">Services</span>
+      </a>
+      <a href="{{ url_for('apis.apis') }}" class="{% if request.endpoint == 'apis.apis' %}active{% endif %}">
+        <i class="fa-solid fa-plug"></i> <span class="label">APIs</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    {% block content %}{% endblock %}
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (window.innerWidth <= 768) {
+        sidebar.classList.toggle("show");
+      } else {
+        document.body.classList.toggle("collapsed");
+      }
+    }
+  </script>
+</body>
+</html>

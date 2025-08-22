@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Manage Servers{% endblock %}
+{% block content %}
+  <style>
+    body {font-family:"Segoe UI",sans-serif;background:#f0f2f5;margin:0;padding:0;}
+    header{background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;padding:20px;text-align:center;}
+    main{max-width:1200px;margin:auto;padding:20px;}
+    .card{background:#fff;border-radius:15px;padding:20px;margin-bottom:20px;box-shadow:0 4px 10px rgba(0,0,0,0.08);}
+    h2{margin-top:0;}
+    label{font-weight:500;display:block;margin-top:10px;color:#555;}
+    input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-top:5px;}
+    button{background:#3498db;color:#fff;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;margin-top:15px;}
+    button:hover{background:#2980b9;transform:scale(1.05);}
+    ul{list-style:none;padding:0;}
+    ul li{background:#fff;padding:14px;margin:10px 0;border-radius:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,0.05);flex-wrap:wrap;}
+    .delete-btn{background:#e74c3c;padding:8px 12px;border:none;border-radius:8px;color:#fff;}
+    .delete-btn:hover{background:#c0392b;}
+  </style>
+  <header><h1>🌐 Manage Servers</h1></header>
+  <main>
+    <div class="card">
+      <h2>➕ Add Server</h2>
+      <form method="POST">
+        <input type="hidden" name="action" value="add">
+        <label>Name</label>
+        <input type="text" name="name" required>
+        <label>Country</label>
+        <select name="country" required>
+          {% for c, flag in countries %}
+          <option value="{{flag}} {{ c }}" {% if c == "India" %}selected{% endif %}>{{ flag }} {{ c }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit"><i class="fa-solid fa-save"></i> Save Server</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>📋 Current Servers</h2>
+      <ul>
+        {% for s in servers %}
+        <li>
+          <span><b>{{ s.name }}</b> ({{ s.country }})</span>
+          <form method="POST">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="server_id" value="{{ s.id }}">
+            <button type="submit" class="delete-btn"><i class="fa-solid fa-trash"></i> Delete</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </main>
+{% endblock %}

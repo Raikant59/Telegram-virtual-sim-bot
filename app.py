@@ -6,12 +6,17 @@ from mongoengine import connect
 
 from bot.dispatcher import dispatcher
 from admin_panel.routes.dashboard import dashboard_bp
+from admin_panel.routes.servers import servers_bp
+from admin_panel.routes.services import services_bp
+from admin_panel.routes.apis import apis_bp
+from utils.worker import init_worker
+
+
 
 # Load env vars
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/virtualsim")
-
 # Init DB
 connect(host=MONGO_URI)
 
@@ -21,8 +26,14 @@ app = Flask(__name__)
 # Init Telebot (just for parsing)
 bot = TeleBot(BOT_TOKEN, parse_mode="HTML")
 
+init_worker(bot)
+
 # Register admin routes
 app.register_blueprint(dashboard_bp, url_prefix="/admin")
+app.register_blueprint(servers_bp, url_prefix="/admin/servers")
+app.register_blueprint(services_bp, url_prefix="/admin/services")
+app.register_blueprint(apis_bp, url_prefix="/admin/apis")
+
 
 # Telegram webhook route
 @app.route("/webhook", methods=["POST"])

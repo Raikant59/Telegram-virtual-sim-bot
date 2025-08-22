@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Manage Connect APIs{% endblock %}
+{% block content %}
+  <style>
+    body {font-family:"Segoe UI",sans-serif;background:#f0f2f5;margin:0;}
+    header {background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;padding:20px;text-align:center;}
+    main {max-width:1200px;margin:auto;padding:20px;}
+    .card {background:#fff;border-radius:15px;padding:20px;margin-bottom:20px;box-shadow:0 4px 10px rgba(0,0,0,0.08);}
+
+    /* Table Styling */
+    table {width:100%;border-collapse:collapse;margin-top:15px;}
+    th, td {padding:12px;border-bottom:1px solid #eee;text-align:left;}
+    th {background:#f7f7f7;font-weight:600;}
+    tr:hover {background:#fafafa;}
+    td small {color:#666;}
+
+    .actions {display:flex;gap:10px;}
+    .btn {padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:14px;}
+    .btn-add {background:#8e44ad;color:#fff;margin-bottom:15px;}
+    .btn-edit {background:#3498db;color:#fff;}
+    .btn-delete {background:#e74c3c;color:#fff;}
+
+    /* Modal */
+    .modal {display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:999;}
+    .modal-content {background:#fff;padding:20px;border-radius:12px;width:90%;max-width:500px;position:relative;}
+    .modal-content h2 {margin-top:0;}
+    .close {position:absolute;top:10px;right:15px;font-size:20px;cursor:pointer;}
+
+    input,select,textarea {width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-top:5px;}
+    label {margin-top:10px;font-weight:500;display:block;}
+    button[type="submit"] {background:#8e44ad;color:#fff;padding:10px;border:none;border-radius:8px;cursor:pointer;margin-top:15px;width:100%;}
+    button[type="submit"]:hover {background:#732d91;}
+
+    /* Responsive */
+    @media(max-width:768px){
+      table, thead, tbody, th, td, tr {display:block;}
+      thead {display:none;}
+      tr {margin-bottom:15px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+      td {padding:10px;border:none;display:flex;justify-content:space-between;align-items:center;}
+      td::before {content:attr(data-label);font-weight:bold;color:#555;}
+      .actions {justify-content:flex-end;}
+    }
+  </style>
+
+  <header><h1>🛒 Manage Services</h1></header>
+  <main>
+    <div class="card">
+      <button class="btn btn-add" onclick="openModal()">➕ Add Service</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Server</th>
+            <th>Price</th>
+            <th>Code</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in services %}
+          <tr>
+            <td data-label="Name">{{ s.name }}</td>
+            <td data-label="Server">{{ s.server.name }} ({{ s.server.country }})</td>
+            <td data-label="Price">{{ s.price }}</td>
+            <td data-label="Code">{{ s.code }}</td>
+            <td data-label="Actions">
+              <div class="actions">
+                <button class="btn btn-edit" onclick="openModal('{{ s.id }}','{{ s.name }}','{{ s.logo }}','{{ s.code }}','{{ s.description }}','{{ s.price }}','{{ s.disable_time }}','{{ s.server.id }}')">✏️ Edit</button>
+                <form method="POST" style="display:inline;">
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="service_id" value="{{ s.id }}">
+                  <button type="submit" class="btn btn-delete">🗑 Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="serviceModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2 id="modalTitle">➕ Add Service</h2>
+      <form method="POST" id="serviceForm">
+        <input type="hidden" name="action" id="formAction" value="add">
+        <input type="hidden" name="service_id" id="serviceId">
+
+        <label>Name</label><input type="text" name="name" id="name" required>
+        <label>Logo URL</label><input type="url" name="logo" id="logo" required>
+        <label>Code</label><input type="text" name="code" id="code" required>
+        <label>Description</label><textarea name="description" id="description" required></textarea>
+        <label>Price</label><input type="number" step="0.01" name="price" id="price" required>
+        <label>Disable Time (seconds)</label><input type="number" name="disable_time" id="disable_time" value="0">
+        <label>Server</label>
+        <select name="server_id" id="server_id" required>
+          {% for server in servers %}
+           <option value="{{ server.id }}">{{ server.name }} ({{ server.country }})</option>
+          {% endfor %}
+        </select>
+
+        <button type="submit">💾 Save</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal(id='', name='', logo='', code='', description='', price='', disable_time='0', server_id='') {
+      document.getElementById("serviceModal").style.display = "flex";
+      if (id) {
+        document.getElementById("modalTitle").innerText = "✏️ Edit Service";
+        document.getElementById("formAction").value = "edit";
+        document.getElementById("serviceId").value = id;
+        document.getElementById("name").value = name;
+        document.getElementById("logo").value = logo;
+        document.getElementById("code").value = code;
+        document.getElementById("description").value = description;
+        document.getElementById("price").value = price;
+        document.getElementById("disable_time").value = disable_time;
+        document.getElementById("server_id").value = server_id;
+      } else {
+        document.getElementById("modalTitle").innerText = "➕ Add Service";
+        document.getElementById("formAction").value = "add";
+        document.getElementById("serviceForm").reset();
+        document.getElementById("serviceId").value = '';
+      }
+    }
+    function closeModal() { document.getElementById("serviceModal").style.display = "none"; }
+    window.onclick = function(event) {
+      if (event.target == document.getElementById("serviceModal")) closeModal();
+    }
+  </script>
+{% endblock %}
