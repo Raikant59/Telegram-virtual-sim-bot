@@ -11,6 +11,12 @@ from admin_panel.routes.servers import servers_bp
 from admin_panel.routes.services import services_bp
 from admin_panel.routes.apis import apis_bp
 from admin_panel.routes.users import users_bp
+from admin_panel.routes.payments import payments_bp
+from admin_panel.routes.recharges import recharges_bp
+from models.recharge import Recharge
+from models.transaction import Transaction
+from models.user import User
+from models.payment_config import PaymentConfig
 
 
 
@@ -44,6 +50,8 @@ app.register_blueprint(servers_bp, url_prefix="/admin/servers")
 app.register_blueprint(services_bp, url_prefix="/admin/services")
 app.register_blueprint(apis_bp, url_prefix="/admin/apis")
 app.register_blueprint(users_bp, url_prefix="/admin/users")
+app.register_blueprint(payments_bp, url_prefix="/admin/payments")
+app.register_blueprint(recharges_bp, url_prefix="/admin/recharges")
 
 
 # Telegram webhook route
@@ -85,6 +93,65 @@ def webhook():
 
     # ALWAYS return 200 so Telegram considers update delivered
     return "OK", 200
+
+from flask import jsonify
+
+@app.route("/webhooks/crypto", methods=["POST"])
+def crypto_webhook():
+    cfg = PaymentConfig.objects().first()
+    if not cfg: return "no cfg", 400
+    # Validate secret header/body (implementation depends on provider)
+    if cfg.crypto_webhook_secret and request.headers.get("X-Webhook-Secret") != cfg.crypto_webhook_secret:
+        return "forbidden", 403
+    data = request.get_json(force=True, silent=True) or {}
+    ref = (data.get("reference") or data.get("metadata",{}).get("reference") or "").strip()
+    rid = ref or data.get("order_id") or data.get("invoice_id")
+    if not rid: return "ok", 200
+    r = Recharge.objects(id=rid).first()
+    if not r: return "ok", 200
+    status = (data.get("status") or "").lower()
+    # Map provider statuses
+    if status in ["paid","confirmed","completed","success"]:
+        if r.status != "paid":
+            u = r.user
+            u.balance += r.amount
+            u.total_recharged = (u.total_recharged or 0) + r.amount
+            u.save()
+            Transaction(user=u, type="credit", amount=r.amount,
+                        closing_balance=u.balance, note="recharge via crypto").save()
+            r.mark("paid", provider_txn_id=data.get("id") or data.get("invoice_id"), details=data)
+    elif status in ["failed","expired","canceled","cancelled"]:
+        r.mark("failed", details=data)
+    else:
+        r.details = data; r.save()
+    return jsonify(ok=True)
+
+@app.route("/webhooks/bharatpay", methods=["POST"])
+def bharatpay_webhook():
+    cfg = PaymentConfig.objects().first()
+    if not cfg: return "no cfg", 400
+    if cfg.bharatpay_webhook_secret and request.headers.get("X-Webhook-Secret") != cfg.bharatpay_webhook_secret:
+        return "forbidden", 403
+    data = request.get_json(force=True, silent=True) or {}
+    rid = str(data.get("reference") or data.get("order_id") or "").strip()
+    if not rid: return "ok", 200
+    r = Recharge.objects(id=rid).first()
+    if not r: return "ok", 200
+    status = (data.get("status") or "").lower()
+    if status in ["paid","success","captured","completed"]:
+        if r.status != "paid":
+            u = r.user
+            u.balance += r.amount
+            u.total_recharged = (u.total_recharged or 0) + r.amount
+            u.save()
+            Transaction(user=u, type="credit", amount=r.amount,
+                        closing_balance=u.balance, note="recharge via BharatPay").save()
+            r.mark("paid", provider_txn_id=data.get("txn_id") or data.get("id"), details=data)
+    elif status in ["failed","expired","cancelled","canceled"]:
+        r.mark("failed", details=data)
+    else:
+        r.details = data; r.save()
+    return jsonify(ok=True)
 
 
 @app.route("/webhook/<token>", methods=["POST"])

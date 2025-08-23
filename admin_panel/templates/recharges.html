@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Recharges{% endblock %}
+{% block content %}
+<style>
+  header{background:linear-gradient(135deg,#8e44ad,#3498db);color:#fff;padding:20px;border-radius:12px;margin-bottom:18px}
+  .filters{display:flex;gap:10px;align-items:center;margin:10px 0}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  th,td{padding:12px;border-bottom:1px solid #eee;font-size:14px}
+  th{background:#f9fafb;text-align:left}
+  .tag{padding:4px 8px;border-radius:10px;font-size:12px;background:#f1f5f9}
+  .ok{background:#d1fae5}.warn{background:#fef3c7}.bad{background:#fee2e2}
+  form.inline{display:inline}
+  .btn{border:none;border-radius:8px;padding:8px 10px;cursor:pointer}
+  .approve{background:#10b981;color:#fff}
+  .reject{background:#ef4444;color:#fff}
+</style>
+<header><h2>💠 Recharges</h2></header>
+
+<form class="filters" method="GET">
+  <input type="text" name="q" placeholder="Search UTR/Txn ID" value="{{ q or '' }}">
+  <select name="status">
+    <option value="">All statuses</option>
+    {% for st in ["created","awaiting_utr","pending","paid","rejected","failed","expired"] %}
+    <option value="{{st}}" {% if status==st %}selected{% endif %}>{{ st }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn" type="submit">Filter</button>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>User</th><th>Method</th><th>Amount</th><th>UTR/Txn</th><th>Status</th><th>When</th><th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in recharges %}
+    <tr>
+      <td>{{ r.user.telegram_id }}</td>
+      <td>{{ r.method }}</td>
+      <td>{{ "%.2f"|format(r.amount) }} {{ r.currency }}</td>
+      <td>{{ r.utr or r.provider_txn_id or "-" }}</td>
+      <td>
+        <span class="tag
+          {% if r.status=='paid' %}ok{% elif r.status in ['pending','awaiting_utr','created'] %}warn{% else %}bad{% endif %}
+        ">{{ r.status }}</span>
+      </td>
+      <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>
+        {% if r.status in ['pending','awaiting_utr'] %}
+          <form class="inline" method="POST">
+            <input type="hidden" name="action" value="approve">
+            <input type="hidden" name="rid" value="{{ r.id }}">
+            <button class="btn approve" type="submit">Approve</button>
+          </form>
+          <form class="inline" method="POST">
+            <input type="hidden" name="action" value="reject">
+            <input type="hidden" name="rid" value="{{ r.id }}">
+            <button class="btn reject" type="submit">Reject</button>
+          </form>
+        {% else %}-{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

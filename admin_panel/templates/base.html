@@ -204,6 +204,19 @@
           class="{% if request.endpoint == 'apis.apis' %}active{% endif %}">
           <i class="fa-solid fa-plug"></i> <span class="label">APIs</span>
         </a>
+        <!-- inside <nav> -->
+        <a
+          href="{{ url_for('payments.payments') }}"
+          class="{% if request.endpoint == 'payments.payments' %}active{% endif %}">
+          <i class="fa-solid fa-credit-card"></i>
+          <span class="label">Payments</span>
+        </a>
+        <a
+          href="{{ url_for('recharges.recharges') }}"
+          class="{% if request.endpoint == 'recharges.recharges' %}active{% endif %}">
+          <i class="fa-solid fa-indian-rupee-sign"></i>
+          <span class="label">Recharges</span>
+        </a>
       </nav>
     </div>
     {% with messages = get_flashed_messages(with_categories=true) %} {% if

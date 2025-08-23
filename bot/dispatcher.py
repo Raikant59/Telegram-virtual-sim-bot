@@ -1,10 +1,15 @@
-from bot.groups import command_handlers, callback_handlers,inline_handlers
+from bot.groups import command_handlers, callback_handlers,inline_handlers,message_handlers
 
 class Dispatcher:
     def __init__(self):
         self.command_handlers = {}
         self.callback_handlers = {}
         self.inline_handlers = []
+        self.message_handlers = []
+    
+    def register_message(self, func):
+        self.message_handlers.append(func)
+
     def register_command(self, cmd, func):
         self.command_handlers[cmd] = func
 
@@ -24,7 +29,10 @@ class Dispatcher:
                 cmd = text.split()[0][1:]
                 if cmd in self.command_handlers:
                     self.command_handlers[cmd](bot, update["message"])
-        
+            else:
+                for fn in self.message_handlers:
+                    fn(bot, update["message"])
+
         elif "callback_query" in update:
             data = update["callback_query"]["data"]
             prefix = data.split(":")[0]
@@ -41,3 +49,4 @@ dispatcher = Dispatcher()
 command_handlers(dispatcher)
 callback_handlers(dispatcher)
 inline_handlers(dispatcher)
+message_handlers(dispatcher)
