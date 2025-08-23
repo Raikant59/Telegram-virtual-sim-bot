@@ -3,6 +3,8 @@ from models.user import User
 from utils.config import get_config
 from dotenv import load_dotenv
 import os
+from models.order import Order
+from models.otp import OtpMessage
 
 load_dotenv()
 BOT_URL = os.getenv("BOT_URL")
@@ -17,13 +19,21 @@ def handle(bot, message):
 
         # Get or create user
         user = User.objects(telegram_id=user_id).first()
+
+
         if not user:
-            user = User(telegram_id=user_id, username=username)
+            user = User(telegram_id=user_id, username=username,name=message["from"]["first_name"])
+            user.save()
+        else:
+            user.name = message["from"]["first_name"]
             user.save()
 
         balance = user.balance
-        total_purchased = 0
-        total_used = 0
+
+        user_orders = Order.objects(user=user)
+        total_purchased = user_orders.count()
+
+        total_used = OtpMessage.objects(user=user).count()
 
         text = (
             f"👋 Hello {message['from'].get('first_name', '')} !\n\n"

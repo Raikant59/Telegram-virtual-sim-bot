@@ -3,6 +3,8 @@ from models.transaction import Transaction
 from bot.libs.helpers import is_admin
 from telebot import types
 
+from bot.libs.helpers import safe_edit_message
+
 PAGE_SIZE = 5  # transactions per page
 
 def build_transaction_message(user, page=1):
@@ -82,7 +84,7 @@ def handle_callback(bot, call):
     _, target_id, page_str = data
     user = User.objects(telegram_id=target_id).first()
     if not user:
-        bot.answer_callback_query(call["id"], "User not found.")
+        bot.send_message(call["message"]["chat"]["id"], "❌ User not found.")
         return
 
     page = int(page_str)

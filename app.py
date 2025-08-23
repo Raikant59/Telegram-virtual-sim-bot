@@ -3,6 +3,7 @@ from flask import Flask, request
 from dotenv import load_dotenv
 from telebot import TeleBot
 from mongoengine import connect
+import json
 
 from bot.dispatcher import dispatcher
 from admin_panel.routes.dashboard import dashboard_bp
@@ -48,11 +49,43 @@ app.register_blueprint(users_bp, url_prefix="/admin/users")
 # Telegram webhook route
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    if request.headers.get("content-type") == "application/json":
-        update = request.get_json()
-        dispatcher.handle_update(update, bot)  # manual dispatch
-        return "OK", 200
-    return "Unsupported Media Type", 415
+    """
+    Always return 200 to Telegram. Attempt to parse and dispatch updates,
+    but swallow errors so Telegram doesn't keep retrying.
+    """
+    update = None
+    try:
+        # Preferred: Flask provides is_json and get_json
+        if request.is_json:
+            # silent=True -> returns None instead of raising on bad JSON
+            update = request.get_json(silent=True)
+        else:
+            # Try to parse request.data as JSON (covers other content types)
+            raw = request.data or b""
+            if raw:
+                try:
+                    update = json.loads(raw.decode("utf-8"))
+                except Exception:
+                    update = None
+
+        if update:
+            try:
+                # call your dispatcher (wrap handler execution so it can't raise)
+                dispatcher.handle_update(update, bot)
+            except Exception as e:
+                # log but do NOT return an error to Telegram
+                app.logger.exception("Error while handling update: %s", e)
+        else:
+            # invalid/empty payload; log for investigation
+            app.logger.warning("Webhook received empty/invalid payload. headers=%s body=%s",
+                               dict(request.headers), request.data[:1000])
+    except Exception as e:
+        # catch-all so we never return non-200
+        app.logger.exception("Unexpected error in webhook endpoint: %s", e)
+
+    # ALWAYS return 200 so Telegram considers update delivered
+    return "OK", 200
+
 
 @app.route("/webhook/<token>", methods=["POST"])
 def webhooka(token):

@@ -9,6 +9,7 @@ class OtpPending(Document):
     url = StringField()
     chat_id = IntField()
     cancel_url = StringField()
+    price = FloatField()
     message_id = IntField()
     cancelTime = IntField()
     responseType = StringField(choices=["Text", "JSON"], default="Text")

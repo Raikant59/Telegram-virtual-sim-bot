@@ -10,7 +10,7 @@ def handle(bot, call):
     user = User.objects(telegram_id=user_id).first()
 
     if not user:
-        bot.answer_callback_query(call["id"], "❌ User not found. Please use /start first.")
+        bot.send_message(call["message"]["chat"]["id"], "❌ User not found. Please use /start first.")
         return
 
     balance = user.balance

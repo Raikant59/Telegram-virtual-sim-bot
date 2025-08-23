@@ -4,6 +4,7 @@ from mongoengine import Document, StringField, DateTimeField, FloatField, Boolea
 
 class User(Document):
     telegram_id = StringField(required=True, unique=True)
+    name = StringField(default="None")
     username = StringField()
     balance = FloatField(default=0.0)
     total_recharged = FloatField(default=0)

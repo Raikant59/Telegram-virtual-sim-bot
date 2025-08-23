@@ -8,7 +8,7 @@ def handle(bot, call):
     user = User.objects(telegram_id=user_id).first()
 
     if not user:
-        bot.answer_callback_query(call["id"], "❌ User not found. Please use /start first.")
+        bot.send_message(call["message"]["chat"]["id"], "❌ User not found. Please use /start first.")
         return
 
     available = user.balance
@@ -30,6 +30,3 @@ def handle(bot, call):
 
     # ✅ use dict keys, not attributes
     safe_edit_message(bot, call, text, markup)
-
-
-    bot.answer_callback_query(call["id"])
