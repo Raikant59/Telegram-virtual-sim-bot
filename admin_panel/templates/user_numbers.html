@@ -4,7 +4,7 @@
 {% block content %}
 <style>
 .wrap {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 20px auto;
   padding: 0 10px;
 }
@@ -87,6 +87,7 @@ th { background: #fafafa; font-weight: 700; }
 .status-pending { background:#f1c40f; color:#000; }
 .status-completed { background:#2ecc71; color:#fff; }
 .status-cancelled { background:#e74c3c; color:#fff; }
+.status-active { background:#3498db; color:#fff; }
 
 .no-data { text-align: center; padding: 20px; color: #666; }
 
@@ -119,12 +120,32 @@ th { background: #fafafa; font-weight: 700; }
   color: #fff;
 }
 
-/* Mobile */
-@media(max-width: 600px){
-  .top { flex-direction: column; align-items: flex-start; }
-  .filters { flex-direction: column; }
-  .filters input, .filters select, .filters button { width: 100%; }
-  th, td { font-size: 13px; padding: 10px; }
+/* Mobile Card View */
+@media(max-width: 700px){
+  table, thead, tbody, th, td, tr { display: block; }
+  thead { display: none; }
+
+  tr {
+    margin-bottom: 15px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    padding: 12px;
+  }
+
+  td {
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+  }
+
+  td:before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #555;
+  }
 }
 </style>
 
@@ -140,7 +161,7 @@ th { background: #fafafa; font-weight: 700; }
     <select name="status">
       <option value="">All Status</option>
       <option value="pending" {% if status=='pending' %}selected{% endif %}>Pending</option>
-      <option value="pending" {% if status=='=active' %}selected{% endif %}>Active</option>
+      <option value="active" {% if status=='active' %}selected{% endif %}>Active</option>
       <option value="completed" {% if status=='completed' %}selected{% endif %}>Completed</option>
       <option value="cancelled" {% if status=='cancelled' %}selected{% endif %}>Cancelled</option>
     </select>
@@ -153,10 +174,13 @@ th { background: #fafafa; font-weight: 700; }
         <tr>
           <th>#</th>
           <th>Order ID</th>
+          <th>Service</th>
+          <th>Server</th>
           <th>Provider ID</th>
           <th>Number</th>
           <th>Price</th>
           <th>Status</th>
+          <th>OTP</th>
           <th>Created</th>
         </tr>
       </thead>
@@ -164,17 +188,26 @@ th { background: #fafafa; font-weight: 700; }
         {% if orders %}
           {% for o in orders %}
           <tr>
-            <td>{{ o.index }}</td>
-            <td>{{ o.id }}</td>
-            <td>{{ o.provider_order_id or '—' }}</td>
-            <td>{{ o.number or '—' }}</td>
-            <td>₹ {{ '%.2f'|format(o.price or 0.0) }}</td>
-            <td><span class="badge status-{{ o.status }}">{{ o.status }}</span></td>
-            <td>{{ o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else '—' }}</td>
+            <td data-label="#">{{ o.index }}</td>
+            <td data-label="Order ID">{{ o.id }}</td>
+            <td data-label="Service">{{ o.service.name if o.service else '—' }}</td>
+            <td data-label="Server">{{ o.server.name if o.server else '—' }}</td>
+            <td data-label="Provider">{{ o.provider_order_id or '—' }}</td>
+            <td data-label="Number">{{ o.number or '—' }}</td>
+            <td data-label="Price">₹ {{ '%.2f'|format(o.price or 0.0) }}</td>
+            <td data-label="Status"><span class="badge status-{{ o.status }}">{{ o.status }}</span></td>
+            <td data-label="OTP">
+              {% if o.status == "completed" and o.otp_code %}
+                <span class="badge" style="background:#2ecc71;">{{ o.otp_code }}</span>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td data-label="Created">{{ o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else '—' }}</td>
           </tr>
           {% endfor %}
         {% else %}
-          <tr><td colspan="7" class="no-data">No orders found.</td></tr>
+          <tr><td colspan="10" class="no-data">No orders found.</td></tr>
         {% endif %}
       </tbody>
     </table>

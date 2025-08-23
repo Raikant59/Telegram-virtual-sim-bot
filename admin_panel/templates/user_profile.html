@@ -145,6 +145,7 @@
   align-items: center;
   justify-content: center;
   min-width: 100px;
+  text-decoration: none;
 }
 
 .btn:hover {
@@ -183,6 +184,11 @@
 </style>
 
 <div class="profile-wrap">
+  <div style="margin-bottom: 16px;">
+    <a href="{{ url_for('users.users_list') }}" class="btn blue" style="min-width:auto;text-decoration:none; padding:8px 14px;">
+      ⬅ Back
+    </a>
+  </div>
   <!-- Profile Top -->
   <div class="profile-top">
     <div class="avatar">{% if user.username %}{{ user.username[:1]|upper }}{% else %}U{% endif %}</div>
@@ -247,7 +253,7 @@
         <button class="btn cut" type="submit">Cut Balance</button>
       </form>
 
-      <a href="{{ url_for('users.view_numbers', user_id=user.id) }}" class="btn pink">View User Numbers</a>
+      <a href="{{ url_for('users.view_numbers', user_id=user.id) }}" class="btn pink ">View User Numbers</a>
       <a href="{{ url_for('users.view_transactions', user_id=user.id) }}" class="btn blue">View User Transactions</a>
     </div>
   </div>

@@ -1,45 +1,30 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from datetime import date
 from models.user import User
 from models.order import Order
-from models.admin import Admin
-from utils.config import get_config, set_config
+from models.recharge import Recharge
 
-dashboard_bp = Blueprint("dashboard", __name__, template_folder="../templates", static_folder="../static")
+dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
-
-@dashboard_bp.route("/", methods=["GET", "POST"])
+@dashboard_bp.route("/", methods=["GET"])
 def dashboard():
-    if request.method == "POST":
-        # Update support link
-        support_url = request.form.get("support_url")
-        if support_url is not None:
-            set_config("support_url", support_url)
 
-        # Add new admin
-        new_admin_id = request.form.get("new_admin_id")
-        new_admin_name = request.form.get("new_admin_name")
-        if new_admin_id:
-            Admin.objects(telegram_id=new_admin_id).update_one(
-                set__telegram_id=new_admin_id,
-                set__name=new_admin_name or "",
-                upsert=True
-            )
-
-        # Remove admin
-        remove_id = request.form.get("remove_id")
-        if remove_id:
-            Admin.objects(telegram_id=remove_id).delete()
-
-        return redirect(url_for("dashboard.dashboard"))
-
-    # GET request
+    # --- Stats ---
     users_count = User.objects.count()
-    orders_count = Order.objects.count()
-    current_url = get_config("support_url", "")
-    admins = Admin.objects()
+    today_users = User.objects(created_at__gte=date.today()).count()
 
+    orders_count = Order.objects(status="completed").count()
+    today_orders = Order.objects(status="completed", created_at__gte=date.today()).count()
+
+    total_payments = Recharge.objects(status="paid").sum("amount") or 0
+    today_payments = Recharge.objects(status="paid", created_at__gte=date.today()).sum("amount") or 0
+
+    
     return render_template("dashboard.html",
                            users_count=users_count,
+                           today_users=today_users,
                            orders_count=orders_count,
-                           support_url=current_url,
-                           admins=admins)
+                           today_orders=today_orders,
+                           total_payments=total_payments,
+                           today_payments=today_payments,
+                           )

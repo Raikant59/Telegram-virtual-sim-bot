@@ -27,3 +27,4 @@ def inline_handlers(dispatcher):
 
 def message_handlers(dispatcher):
     dispatcher.register_message(recharge.capture_utr_message)
+    dispatcher.register_message(recharge.capture_custom_amount)

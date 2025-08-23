@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from models.user import User
 from models.order import Order
 from models.transaction import Transaction
+from models.otp import OtpMessage
+
 
 users_bp = Blueprint('users', __name__, template_folder='../templates')
 
@@ -118,9 +120,12 @@ def view_numbers(user_id):
 
     orders = query.order_by('-created_at').skip((page-1)*per_page).limit(per_page)
 
-    # add loop.index for template numbering
     for i, o in enumerate(orders):
         o.index = (page-1)*per_page + i + 1
+        # Attach OTP if status is completed
+        if o.status == "completed":
+            otp = OtpMessage.objects(order=o).order_by("-created_at").first()
+            o.otp_code = otp.otp if otp else None
 
     return render_template(
         'user_numbers.html',
@@ -131,7 +136,6 @@ def view_numbers(user_id):
         search=search,
         status=status
     )
-
 
 @users_bp.route('/<user_id>/transactions')
 def view_transactions(user_id):

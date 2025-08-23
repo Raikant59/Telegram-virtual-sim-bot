@@ -66,4 +66,4 @@ def handle(bot, message):
     else:
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(InlineKeyboardButton("✉️ Send Message", url=BOT_URL))
-        bot.reply_to(message, "👋 Hello there! To purchase a number please message me personally.", reply_markup=markup)
+        bot.send_message(chat_id, "👋 Hello there! To purchase a number please message me personally.", reply_markup=markup, parse_mode="HTML")

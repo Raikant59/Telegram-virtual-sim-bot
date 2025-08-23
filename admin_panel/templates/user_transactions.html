@@ -13,17 +13,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
 .top h2 {
-  font-size: 20px;
+  font-size: 22px;
   margin-bottom: 8px;
+  font-weight: 700;
+  color: #2c3e50;
 }
 
 .btn {
-  padding: 8px 12px;
+  padding: 8px 14px;
   background: #3498db;
   color: #fff;
   border-radius: 8px;
@@ -39,49 +41,75 @@
 /* Table */
 .table-wrap {
   overflow-x: auto;
-  border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+  background: #fff;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
 }
 
 th, td {
-  padding: 12px 14px;
+  padding: 14px 16px;
   text-align: left;
   font-size: 14px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f3f3f3;
 }
 
 th {
   background: #fafafa;
   font-weight: 700;
+  color: #444;
+}
+
+tr:hover {
+  background: #f9fcff;
+}
+
+/* Transaction types */
+.type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .type-credit {
+  background: #eafaf0;
   color: #27ae60;
-  font-weight: 700;
 }
 
 .type-debit {
+  background: #fdecea;
   color: #e74c3c;
+}
+
+/* Amount emphasis */
+.amount {
+  font-size: 16px;
   font-weight: 700;
 }
+
+.amount.credit { color: #27ae60; }
+.amount.debit { color: #e74c3c; }
 
 .no-data {
   text-align: center;
   padding: 20px;
-  color: #666;
+  color: #888;
+  font-size: 15px;
 }
 
 /* Pagination */
 .pagination {
   display: flex;
   justify-content: center;
-  margin: 18px 0;
+  margin: 20px 0;
   flex-wrap: wrap;
   gap: 6px;
 }
@@ -106,11 +134,38 @@ th {
   color: #fff;
 }
 
-/* Mobile */
-@media(max-width: 600px){
-  th, td { padding: 10px; font-size: 13px; }
-  .top { flex-direction: column; align-items: flex-start; }
-  .top h2 { margin-bottom: 6px; }
+/* Mobile Card View */
+@media(max-width: 700px){
+  table, thead, tbody, th, td, tr { display: block; }
+  thead { display: none; }
+
+  tr {
+    margin-bottom: 16px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    padding: 14px;
+  }
+
+  td {
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+  }
+
+  td:before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #555;
+  }
+
+  /* Amount highlight on mobile */
+  td[data-label="Amount"] {
+    font-size: 18px;
+    font-weight: 800;
+  }
 }
 </style>
 
@@ -136,12 +191,16 @@ th {
         {% if trnx %}
           {% for t in trnx %}
           <tr>
-            <td>{{ t.index }}</td>
-            <td class="type-{{ t.type }}">{{ t.type }}</td>
-            <td>₹ {{ '%.2f'|format(t.amount or 0.0) }}</td>
-            <td>₹ {{ '%.2f'|format(t.closing_balance or 0.0) }}</td>
-            <td>{{ t.note or '—' }}</td>
-            <td>{{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '—' }}</td>
+            <td data-label="#">{{ t.index }}</td>
+            <td data-label="Type">
+              <span class="type-badge type-{{ t.type }}">{{ t.type }}</span>
+            </td>
+            <td data-label="Amount">
+              <span class="amount {{ t.type }}">{{ '+' if t.type=='credit' else '-' }} ₹{{ '%.2f'|format(t.amount or 0.0) }}</span>
+            </td>
+            <td data-label="Closing Balance">₹ {{ '%.2f'|format(t.closing_balance or 0.0) }}</td>
+            <td data-label="Note">{{ t.note or '—' }}</td>
+            <td data-label="Date">{{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '—' }}</td>
           </tr>
           {% endfor %}
         {% else %}

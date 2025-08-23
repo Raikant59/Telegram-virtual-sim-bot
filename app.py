@@ -13,6 +13,9 @@ from admin_panel.routes.apis import apis_bp
 from admin_panel.routes.users import users_bp
 from admin_panel.routes.payments import payments_bp
 from admin_panel.routes.recharges import recharges_bp
+from admin_panel.routes.bot_settings import bot_settings_bp
+
+
 from models.recharge import Recharge
 from models.transaction import Transaction
 from models.user import User
@@ -52,7 +55,7 @@ app.register_blueprint(apis_bp, url_prefix="/admin/apis")
 app.register_blueprint(users_bp, url_prefix="/admin/users")
 app.register_blueprint(payments_bp, url_prefix="/admin/payments")
 app.register_blueprint(recharges_bp, url_prefix="/admin/recharges")
-
+app.register_blueprint(bot_settings_bp, url_prefix="/admin/bot_settings")
 
 # Telegram webhook route
 @app.route("/webhook", methods=["POST"])
