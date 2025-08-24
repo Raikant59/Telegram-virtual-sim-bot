@@ -24,7 +24,6 @@ def handle(bot, message):
         f"➖ Cut Balance → <code>/cut {example_id} 100</code>\n"
         f"📜 User Transactions → <code>/trnx {example_id}</code>\n"
         f"📱 User Number History → <code>/nums {example_id}</code>\n"
-        f"📊 User SMM History → <code>/smm_history {example_id}</code>\n"
         f"⛔ Ban User → <code>/ban {example_id}</code>\n"
         f"✅ Unban User → <code>/unban {example_id}</code>\n"
         f"📢 Broadcast → <code>/broadcast hello everyone</code>\n\n"

@@ -1,4 +1,4 @@
-from bot.handlers import start, buy, status, balance, back, admin_balance, admin_transactions,inline_services, purchase,cancel,admin_panel,recharge,promo  
+from bot.handlers import start, buy, status, balance, back, admin_balance,admin_numbers, admin_transactions,inline_services, purchase,cancel,admin_panel,recharge,promo,transactions, profile,history
 
 def command_handlers(dispatcher):
     dispatcher.register_command("start", start.handle)
@@ -7,6 +7,7 @@ def command_handlers(dispatcher):
     dispatcher.register_command("add", admin_balance.handle)
     dispatcher.register_command("cut", admin_balance.handle)
     dispatcher.register_command("trnx", admin_transactions.handle)
+    dispatcher.register_command("nums", admin_numbers.handle)
     dispatcher.register_command("show_server", inline_services.show_server)
     dispatcher.register_command("admin", admin_panel.handle)
 
@@ -22,7 +23,12 @@ def callback_handlers(dispatcher):
     dispatcher.register_callback("utr", recharge.ask_utr_callback)   # put user into UTR reply mode
     dispatcher.register_callback("amt", recharge.amount_callback)    # set amount for flows
     dispatcher.register_callback("pay", recharge.pay_callback)       # start payment (crypto/bharatpay/manual)
-    dispatcher.register_callback("promo", promo.menu)  
+    dispatcher.register_callback("promo", promo.menu) 
+    dispatcher.register_callback("transactions", transactions.handle)
+    dispatcher.register_callback("profile", profile.handle)
+    dispatcher.register_callback("history", history.handle)
+    dispatcher.register_callback("nums", admin_numbers.handle_callback)
+ 
 def inline_handlers(dispatcher):
     dispatcher.register_inline(inline_services.handle_inline)
 
