@@ -6,12 +6,14 @@ from dotenv import load_dotenv
 load_dotenv()
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5000/admin")
 
+
 def handle(bot, message):
     user_id = str(message["from"]["id"])
     chat_id = message["chat"]["id"]
 
     if not is_admin(user_id):
-        bot.send_message(chat_id, "❌ You are not authorized to use this command.")
+        bot.send_message(
+            chat_id, "❌ You are not authorized to use this command.")
         return
 
     # Example user ID
@@ -33,15 +35,33 @@ def handle(bot, message):
     # Inline Mini WebApp buttons
     markup = InlineKeyboardMarkup(row_width=2)
     markup.add(
-        InlineKeyboardButton("📊 Dashboard", web_app=WebAppInfo(url=f"{FRONTEND_URL}")),
-        InlineKeyboardButton("🖥 Servers", web_app=WebAppInfo(url=f"{FRONTEND_URL}/servers")),
+        InlineKeyboardButton(
+            "Dashboard", web_app=WebAppInfo(url=f"{FRONTEND_URL}")),
+        InlineKeyboardButton("Users", web_app=WebAppInfo(
+            url=f"{FRONTEND_URL}/users")),
     )
     markup.add(
-        InlineKeyboardButton("🛒 Services", web_app=WebAppInfo(url=f"{FRONTEND_URL}/services")),
-        InlineKeyboardButton("🔌 APIs", web_app=WebAppInfo(url=f"{FRONTEND_URL}/apis")),
+        InlineKeyboardButton("Add Server", web_app=WebAppInfo(
+            url=f"{FRONTEND_URL}/servers")),
+        InlineKeyboardButton("Add Service", web_app=WebAppInfo(
+            url=f"{FRONTEND_URL}/services")),
     )
     markup.add(
-        InlineKeyboardButton("👤 Users", web_app=WebAppInfo(url=f"{FRONTEND_URL}/users"))
+        InlineKeyboardButton("Connect API", web_app=WebAppInfo(
+            url=f"{FRONTEND_URL}/apis")),
+        InlineKeyboardButton("Edit Bot Settings", web_app=WebAppInfo(
+            url=f"{FRONTEND_URL}/bot_settings")),
     )
+    markup.add(
+        InlineKeyboardButton("Promo Codes", web_app=WebAppInfo(
+            url=f"{FRONTEND_URL}/promos")),
+    )
+    markup.add(
+        InlineKeyboardButton("Payment Gateways", web_app=WebAppInfo(
+            url=f"{FRONTEND_URL}/payments")),
+        InlineKeyboardButton("Recharges", web_app=WebAppInfo(
+            url=f"{FRONTEND_URL}/recharges")),
+    )
+    
 
     bot.send_message(chat_id, text, parse_mode="HTML", reply_markup=markup)

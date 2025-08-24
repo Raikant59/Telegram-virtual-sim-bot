@@ -216,6 +216,9 @@ content %}
     overflow: auto;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(3px);
+    max-height: 90vh;      /* don't exceed 90% of viewport height */
+  overflow-y: auto;      /* enable vertical scroll inside */
+
   }
   .modal-content {
     background: #fff;

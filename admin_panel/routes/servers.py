@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from models.server import Server
 from utils.countries import countries
-
 servers_bp = Blueprint("servers", __name__, template_folder="../templates")
 
 @servers_bp.route("/", methods=["GET", "POST"])
@@ -14,6 +13,16 @@ def servers():
             country = request.form.get("country")
             if name and country:
                 Server(name=name, country=country).save()
+
+        elif action == "edit":
+            server_id = request.form.get("server_id")
+            name = request.form.get("name")
+            country = request.form.get("country")
+            s = Server.objects(id=server_id).first()
+            if s:
+                if name: s.name = name
+                if country: s.country = country
+                s.save()
 
         elif action == "delete":
             server_id = request.form.get("server_id")
