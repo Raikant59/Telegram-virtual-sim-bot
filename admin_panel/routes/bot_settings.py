@@ -14,6 +14,14 @@ def bot_settings():
         support_url = request.form.get("support_url")
         if support_url is not None:
             set_config("support_url", support_url)
+        # inside POST handling
+        required_group = request.form.get("required_group")
+        required_channel = request.form.get("required_channel")
+        if required_group is not None:
+            set_config("required_group", required_group)
+        if required_channel is not None:
+            set_config("required_channel", required_channel)
+
 
         # Add new admin
         new_admin_id = request.form.get("new_admin_id")
@@ -37,9 +45,13 @@ def bot_settings():
     orders_count = Order.objects.count()
     current_url = get_config("support_url", "")
     admins = Admin.objects()
-
+    current_group = get_config("required_group", "")
+    current_channel = get_config("required_channel", "")
     return render_template("bot_settings.html",
-                           users_count=users_count,
-                           orders_count=orders_count,
-                           support_url=current_url,
-                           admins=admins)
+                        users_count=users_count,
+                        orders_count=orders_count,
+                        support_url=current_url,
+                        admins=admins,
+                        required_group=current_group,
+                        required_channel=current_channel)
+

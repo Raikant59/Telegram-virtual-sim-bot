@@ -10,3 +10,14 @@ def set_config(key: str, value: str):
         cfg.update(value=value)
     else:
         Config(key=key, value=value).save()
+
+# utils/config.py
+def get_required_links():
+    return {
+        "group": get_config("required_group", ""),
+        "channel": get_config("required_channel", "")
+    }
+
+def set_required_links(group: str, channel: str):
+    set_config("required_group", group)
+    set_config("required_channel", channel)
