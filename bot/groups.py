@@ -1,4 +1,4 @@
-from bot.handlers import start, buy, status, balance, back, admin_balance, admin_transactions,inline_services, purchase,cancel,admin_panel,recharge
+from bot.handlers import start, buy, status, balance, back, admin_balance, admin_transactions,inline_services, purchase,cancel,admin_panel,recharge,promo  
 
 def command_handlers(dispatcher):
     dispatcher.register_command("start", start.handle)
@@ -22,9 +22,11 @@ def callback_handlers(dispatcher):
     dispatcher.register_callback("utr", recharge.ask_utr_callback)   # put user into UTR reply mode
     dispatcher.register_callback("amt", recharge.amount_callback)    # set amount for flows
     dispatcher.register_callback("pay", recharge.pay_callback)       # start payment (crypto/bharatpay/manual)
+    dispatcher.register_callback("promo", promo.menu)  
 def inline_handlers(dispatcher):
     dispatcher.register_inline(inline_services.handle_inline)
 
 def message_handlers(dispatcher):
     dispatcher.register_message(recharge.capture_utr_message)
     dispatcher.register_message(recharge.capture_custom_amount)
+    dispatcher.register_message(promo.capture_code)

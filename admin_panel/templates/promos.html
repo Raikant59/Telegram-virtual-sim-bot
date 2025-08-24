@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Promos{% endblock %}
+{% block content %}
+<style>
+.card{border:0; box-shadow:0 6px 18px rgba(0,0,0,.08); border-radius:18px;}
+.badge{border-radius:10px; padding:.35rem .6rem}
+.table thead th{border-bottom:0; color:#6b7280; text-transform:uppercase; letter-spacing:.06em; font-size:.75rem;}
+.btn{border-radius:12px;}
+form .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+@media (max-width:992px){form .grid{grid-template-columns:1fr}}
+</style>
+
+<div class="container-fluid py-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h3 class="mb-0">🎟️ Promo Codes</h3>
+    <a href="#create" class="btn btn-primary" data-bs-toggle="collapse">+ New Promo</a>
+  </div>
+
+  <div id="create" class="collapse">
+    <div class="card p-3 mb-4">
+      <form method="post">
+        <input type="hidden" name="action" value="create">
+        <div class="grid">
+          <div><label class="form-label">Code</label><input name="code" class="form-control" placeholder="SUMMER30" required></div>
+          <div><label class="form-label">Title</label><input name="title" class="form-control" placeholder="Summer Sale"></div>
+          <div>
+            <label class="form-label">Type</label>
+            <select name="type" class="form-select" required>
+              <option value="CREDIT_FCFS">Credit (FCFS)</option>
+              <option value="PERCENT_SERVICE">% off (service)</option>
+              <option value="FLAT_SERVICE">Flat off (service)</option>
+              <option value="LUCKY">Lucky</option>
+            </select>
+          </div>
+          <div><label class="form-label">Amount (💎)</label><input name="amount" type="number" step="0.01" class="form-control" placeholder="e.g. 20"></div>
+          <div><label class="form-label">Percent (%)</label><input name="percent" type="number" step="1" class="form-control" placeholder="e.g. 30"></div>
+          <div><label class="form-label">Max Uses</label><input name="max_uses" type="number" class="form-control" placeholder="0 = unlimited"></div>
+          <div><label class="form-label">Per-user Limit</label><input name="per_user_limit" type="number" class="form-control" value="1"></div>
+          <div>
+            <label class="form-label">Start (UTC)</label>
+            <input name="start_at" type="datetime-local" class="form-control">
+          </div>
+          <div>
+            <label class="form-label">End (UTC)</label>
+            <input name="end_at" type="datetime-local" class="form-control">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Applicable Services</label>
+            <select name="applicable_services" class="form-select" multiple>
+              {% for s in services %}
+                <option value="{{ s.service_id }}">{{ s.name }} — {{ s.server.name }}</option>
+              {% endfor %}
+            </select>
+            <small class="text-muted">Leave empty for global scope (any service)</small>
+          </div>
+          <div class="d-flex gap-3 align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="active" id="activeToggle" checked>
+              <label class="form-check-label" for="activeToggle">Active</label>
+            </div>
+            <button class="btn btn-success">Create</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card p-0">
+        <div class="p-3 pb-0">
+          <h5 class="mb-0">All Promos</h5>
+        </div>
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead><tr>
+              <th>Code</th><th>Type</th><th>Scope</th><th>Uses</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for p in promos %}
+              <tr>
+                <td><strong>{{ p.code }}</strong><br><small class="text-muted">{{ p.title }}</small></td>
+                <td>
+                  {% if p.type == 'CREDIT_FCFS' %}<span class="badge bg-secondary">Credit</span>
+                  {% elif p.type == 'PERCENT_SERVICE' %}<span class="badge bg-info">% Off</span>
+                  {% elif p.type == 'FLAT_SERVICE' %}<span class="badge bg-warning text-dark">Flat</span>
+                  {% else %}<span class="badge bg-success">Lucky</span>{% endif %}
+                </td>
+                <td>
+                  {% if p.applicable_services and p.applicable_services|length %}
+                    <span class="badge bg-dark">Scoped</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark">Global</span>
+                  {% endif %}
+                </td>
+                <td>{{ p.uses }}/{{ p.max_uses or '∞' }}</td>
+                <td>
+                  {% if p.active %}<span class="badge bg-success">Active</span>
+                  {% else %}<span class="badge bg-danger">Disabled</span>{% endif %}
+                </td>
+                <td class="text-end">
+                  <form method="post" class="d-inline">
+                    <input type="hidden" name="action" value="toggle">
+                    <input type="hidden" name="pid" value="{{ p.id }}">
+                    <button class="btn btn-sm btn-outline-primary">{{ 'Disable' if p.active else 'Enable' }}</button>
+                  </form>
+                  <form method="post" class="d-inline ms-2" onsubmit="return confirm('Delete this promo?')">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="pid" value="{{ p.id }}">
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="6" class="text-center text-muted py-4">No promos yet.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card p-0">
+        <div class="p-3 pb-0"><h5 class="mb-0">Recent Redemptions</h5></div>
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead><tr>
+              <th>When</th><th>User</th><th>Code</th><th>Outcome</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+              {% for r in recent %}
+              <tr>
+                <td>{{ r.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                <td>{{ r.user.username or r.user.telegram_id }}</td>
+                <td>{{ r.promo.code }}</td>
+                <td>
+                  {% if r.amount_credit %}+{{ r.amount_credit }} 💎{% elif r.percent %}{{ r.percent }}% off{% elif r.flat %}{{ r.flat }} 💎 off{% else %}—{% endif %}
+                </td>
+                <td><span class="badge {{ 'bg-success' if r.status in ['granted','consumed','reserved'] else 'bg-secondary' }}">{{ r.status }}</span></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No redemptions yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

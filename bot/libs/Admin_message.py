@@ -54,3 +54,11 @@ Your user with user id of <code>{user_id}</code> has just recived OTP for mobile
 🌱<b>Number id</b>: {order_id}
 🌐<b>Service Price</b>: {price} 💎
 📩<b>Message</b>: {message}'''
+
+promo_used_text = '''🔔 <b>Promo Used</b>
+
+👤 <b>User</b>: @{username} (ID: {user_id})
+🎟️ <b>Code</b>: {code}
+📦 <b>Type</b>: {ptype}
+💬 <b>Outcome</b>: {outcome}
+'''

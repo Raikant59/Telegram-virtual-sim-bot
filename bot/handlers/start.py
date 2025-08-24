@@ -54,7 +54,7 @@ def handle(bot, message):
             InlineKeyboardButton("💰 Balance", callback_data="balance"),
             InlineKeyboardButton("💳 Recharge", callback_data="recharge")
         )
-        markup.row(InlineKeyboardButton("🎟 Use Promocode", callback_data="promocode"))
+        markup.row(InlineKeyboardButton("🎟 Use Promocode", callback_data="promo"))
         markup.row(
             InlineKeyboardButton("👤 Profile", callback_data="profile"),
             InlineKeyboardButton("📜 History", callback_data="history")

@@ -98,7 +98,7 @@ def otp_worker():
                                 # Save OTP to DB
                                 order = Order.objects(
                                     provider_order_id=otp.order_id).first()
-                                OtpMessage(
+                                otpMessage = OtpMessage(
                                     order=order,
                                     user=otp.user if hasattr(
                                         otp, "user") else None,
@@ -127,10 +127,11 @@ def otp_worker():
                                             number=otp.phone,
                                             order_id=otp.order_id,
                                             price=otp.price,
-                                            message=otp.raw,
+                                            message=otpMessage.raw,
                                         ))
                                     otp.delete()
                                 except Exception as e:
+                                    print(e)
                                     pass
                         else:
                             res = resp.json()
@@ -142,7 +143,7 @@ def otp_worker():
                                 # Save OTP message
                                 order = Order.objects(
                                     provider_order_id=otp.order_id).first()
-                                OtpMessage(
+                                otpMessage = OtpMessage(
                                     order=order,
                                     user=otp.user if hasattr(
                                         otp, "user") else None,
@@ -169,14 +170,16 @@ def otp_worker():
                                             number=otp.phone,
                                             order_id=otp.order_id,
                                             price=otp.price,
-                                            message=otp.raw
+                                            message=otpMessage.raw
                                         ))
                                 except Exception as e:
+                                    print(e)
                                     pass
 
                                 otp.delete()
                     except Exception as e:
                         # ignore transient polling failures
+                        print(e)
                         pass
             # small sleep to avoid tight loop
             time.sleep(1)

@@ -1,206 +1,301 @@
-{% extends "base.html" %}
-{% block title %}User Profile{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}User Profile{% endblock %} {% block
+content %}
 <style>
-/* ===== Container ===== */
-.profile-wrap {
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 0 10px;
-  font-family: 'Segoe UI', sans-serif;
-}
+  /* ===== Container ===== */
+  .profile-wrap {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 0 10px;
+    font-family: "Segoe UI", sans-serif;
+  }
 
-/* ===== Profile Header ===== */
-.profile-top {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  background: #ffffff;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-  flex-wrap: wrap;
-  transition: all 0.3s ease;
-}
+  /* ===== Profile Header ===== */
+  .profile-top {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    flex-wrap: wrap;
+    transition: all 0.3s ease;
+  }
 
-.avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 16px;
-  background: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  color: #666;
-  flex-shrink: 0;
-  transition: transform 0.3s ease;
-}
-.avatar:hover {
-  transform: scale(1.1);
-}
+  .avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 16px;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: #666;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+  .avatar:hover {
+    transform: scale(1.1);
+  }
 
-.profile-meta h2 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  color: #333;
-}
+  .profile-meta h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #333;
+  }
 
-.profile-meta p {
-  margin: 6px 0;
-  font-size: 14px;
-  color: #666;
-}
+  .profile-meta p {
+    margin: 6px 0;
+    font-size: 14px;
+    color: #666;
+  }
 
-/* Status badges */
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-block;
-}
+  /* Status badges */
+  .status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+  }
 
-.status-unblocked { background: #d4f5e1; color: #16a085; }
-.status-blocked { background: #f8d6d6; color: #e74c3c; }
+  .status-unblocked {
+    background: #d4f5e1;
+    color: #16a085;
+  }
+  .status-blocked {
+    background: #f8d6d6;
+    color: #e74c3c;
+  }
 
-/* ===== Stats Grid ===== */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4,1fr);
-  gap: 16px;
-  margin-top: 20px;
-}
+  /* ===== Stats Grid ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
 
-.stat {
-  background: #fff;
-  border-radius: 14px;
-  padding: 20px;
-  text-align: center;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: default;
-}
-.stat:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-}
+  .stat {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+  .stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  }
 
-.stat .small {
-  font-weight: 400;
-  font-size: 12px;
-  color: white;
-  margin-top: 4px;
-}
+  .stat .small {
+    font-weight: 400;
+    font-size: 12px;
+    color: white;
+    margin-top: 4px;
+  }
 
-/* Gradient backgrounds for stats */
-.stat.balance { background: linear-gradient(135deg,#f39c12,#e67e22); color: #fff; }
-.stat.deposit { background: linear-gradient(135deg,#2ecc71,#27ae60); color: #fff; }
-.stat.total { background: linear-gradient(135deg,#3498db,#2980b9); color: #fff; }
-.stat.used { background: linear-gradient(135deg,#e74c3c,#c0392b); color: #fff; }
+  /* Gradient backgrounds for stats */
+  .stat.balance {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: #fff;
+  }
+  .stat.deposit {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: #fff;
+  }
+  .stat.total {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: #fff;
+  }
+  .stat.used {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: #fff;
+  }
 
-/* ===== Actions Card ===== */
-.card {
-  margin-top: 22px;
-  background: #fff;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-}
+  /* ===== Actions Card ===== */
+  .card {
+    margin-top: 22px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
 
-.card h3 {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  color: #333;
-}
+  .card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #333;
+  }
 
-.card .controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 12px;
-}
+  .card .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+  }
 
-.controls form,
-.controls a {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  align-items: center;
-}
+  .controls form,
+  .controls a {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
 
-/* Buttons */
-.btn {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 100px;
-  text-decoration: none;
-}
+  /* Buttons */
+  .btn {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+    text-decoration: none;
+  }
 
-.btn:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
-}
+  .btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
 
-/* Button colors */
-.btn.block { background: #e74c3c; color: #fff; }
-.btn.discount { background: #5b6b7a; color: #fff; }
-.btn.add { background: #16a085; color: #fff; }
-.btn.cut { background: #f39c12; color: #fff; }
-.btn.pink { background: #ff4da6; color: #fff; }
-.btn.blue { background: #3b82f6; color: #fff; }
+  /* Button colors */
+  .btn.block {
+    background: #e74c3c;
+    color: #fff;
+  }
+  .btn.discount {
+    background: #5b6b7a;
+    color: #fff;
+  }
+  .btn.add {
+    background: #16a085;
+    color: #fff;
+  }
+  .btn.cut {
+    background: #f39c12;
+    color: #fff;
+  }
+  .btn.pink {
+    background: #ff4da6;
+    color: #fff;
+  }
+  .btn.blue {
+    background: #3b82f6;
+    color: #fff;
+  }
 
-/* Inline input styling */
-.controls input {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  width: 120px;
-  max-width: 100%;
-  font-size: 14px;
-}
+  /* Inline input styling */
+  .controls input {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    width: 120px;
+    max-width: 100%;
+    font-size: 14px;
+  }
+  /* ===== Modal Styling ===== */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+  }
+  .modal-content {
+    background: #fff;
+    margin: 5% auto;
+    padding: 20px 30px;
+    border-radius: 16px;
+    max-width: 500px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease-out;
+  }
+  .modal-content select,
+  .modal-content input {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+  }
+  .close {
+    float: right;
+    font-size: 22px;
+    cursor: pointer;
+    color: #999;
+  }
+  .close:hover {
+    color: #333;
+  }
 
-/* ===== Responsive ===== */
-@media(max-width: 900px) {
-  .stats-grid { grid-template-columns: repeat(2,1fr); }
-  .profile-top { flex-direction: column; align-items: flex-start; }
-}
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .profile-top {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
 
-@media(max-width: 500px) {
-  .controls { flex-direction: column; align-items: stretch; }
-  .controls input, .controls button, .controls a { width: 100%; margin-top: 6px; }
-}
+  @media (max-width: 500px) {
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .controls input,
+    .controls button,
+    .controls a {
+      width: 100%;
+      margin-top: 6px;
+    }
+  }
 </style>
 
 <div class="profile-wrap">
-  <div style="margin-bottom: 16px;">
-    <a href="{{ url_for('users.users_list') }}" class="btn blue" style="min-width:auto;text-decoration:none; padding:8px 14px;">
+  <div style="margin-bottom: 16px">
+    <a
+      href="{{ url_for('users.users_list') }}"
+      class="btn blue"
+      style="min-width: auto; text-decoration: none; padding: 8px 14px">
       ⬅ Back
     </a>
   </div>
   <!-- Profile Top -->
   <div class="profile-top">
-    <div class="avatar">{% if user.username %}{{ user.username[:1]|upper }}{% else %}U{% endif %}</div>
+    <div class="avatar">
+      {% if user.username %}{{ user.username[:1]|upper }}{% else %}U{% endif %}
+    </div>
     <div class="profile-meta">
       <h2>{{ user.username or ('User ' ~ user.telegram_id) }}</h2>
       <p>Telegram ID: <b>{{ user.telegram_id }}</b></p>
-      <p>Joined: {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '—' }}</p>
-      <p>Status:
-        {% if user.blocked %}
-          <span class="status-badge status-blocked">Blocked</span>
+      <p>
+        Joined: {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else
+        '—' }}
+      </p>
+      <p>
+        Status: {% if user.blocked %}
+        <span class="status-badge status-blocked">Blocked</span>
         {% else %}
-          <span class="status-badge status-unblocked">Unblocked</span>
+        <span class="status-badge status-unblocked">Unblocked</span>
         {% endif %}
       </p>
     </div>
@@ -225,6 +320,93 @@
       <div class="small">Used Numbers</div>
     </div>
   </div>
+  <!-- ===== Special Discount Modal ===== -->
+  <div id="discountModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDiscountModal()">&times;</span>
+      <h3>Special Discounts of {{ user.username or user.telegram_id }}</h3>
+
+      <!-- Form -->
+      <form method="POST">
+        <input type="hidden" name="action" value="special_discount" />
+
+        <label>Select Server:</label>
+        <select
+          id="serverSelect"
+          name="server_id"
+          required
+          onchange="updateServices()">
+          <option value="">Select Here</option>
+          {% for server in servers %}
+          <option value="{{ server.id }}">{{ server.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Select Service:</label>
+        <select
+          id="serviceSelect"
+          name="service_id"
+          required
+          onchange="updateServerFromService()">
+          <option value="">Select Here</option>
+        </select>
+
+        <label>Discount Percentage</label>
+        <input
+          type="number"
+          step="0.1"
+          name="percent"
+          placeholder="e.g. 10.5"
+          required />
+
+        <button type="submit" class="btn add" style="margin-top: 12px">
+          Add Discount
+        </button>
+      </form>
+
+      <!-- Active Discounts -->
+      <div style="margin-top: 20px">
+        {% if not user_discounts %}
+        <p style="color: #666">
+          This User Doesn’t Have Any Service Discounts...
+        </p>
+        {% else %} {% for d in user_discounts %}
+        <div
+          style="
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          ">
+          <p><b>Service Name:</b> {{ d.service.name }}</p>
+          <p><b>Server Name:</b> {{ d.service.server.name }}</p>
+          <p><b>Discount:</b> {{ d.percent }}%</p>
+          <p>
+            <b>Created On:</b> {{ d.created_at.strftime('%a %b %d %Y, %I:%M:%S
+            %p') }}
+          </p>
+          <form method="POST" style="display: inline">
+            <input type="hidden" name="action" value="remove_discount" />
+            <input type="hidden" name="discount_id" value="{{ d.id }}" />
+            <button
+              type="submit"
+              style="
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #e74c3c;
+                font-size: 18px;
+              ">
+              🗑
+            </button>
+          </form>
+        </div>
+        {% endfor %} {% endif %}
+      </div>
+    </div>
+  </div>
 
   <!-- Actions Card -->
   <div class="card">
@@ -232,30 +414,92 @@
 
     <div class="controls">
       <form method="post">
-        <input type="hidden" name="action" value="block_toggle">
-        <button class="btn block" type="submit">{% if user.blocked %}Unblock User{% else %}Block User{% endif %}</button>
+        <input type="hidden" name="action" value="block_toggle" />
+        <button class="btn block" type="submit">
+          {% if user.blocked %}Unblock User{% else %}Block User{% endif %}
+        </button>
+      </form>
+
+      <form method="post" onsubmit="return false;">
+        <input type="hidden" name="action" value="special_discount" />
+        <button
+          class="btn discount"
+          type="button"
+          onclick="openDiscountModal()">
+          Special Discount
+        </button>
       </form>
 
       <form method="post">
-        <input type="hidden" name="action" value="special_discount">
-        <button class="btn discount" type="submit">Special Discounts</button>
-      </form>
-
-      <form method="post">
-        <input type="hidden" name="action" value="add_balance">
-        <input name="amount" placeholder="Amount">
+        <input type="hidden" name="action" value="add_balance" />
+        <input name="amount" placeholder="Amount" />
         <button class="btn add" type="submit">Add Balance</button>
       </form>
 
       <form method="post">
-        <input type="hidden" name="action" value="cut_balance">
-        <input name="amount" placeholder="Amount">
+        <input type="hidden" name="action" value="cut_balance" />
+        <input name="amount" placeholder="Amount" />
         <button class="btn cut" type="submit">Cut Balance</button>
       </form>
 
-      <a href="{{ url_for('users.view_numbers', user_id=user.id) }}" class="btn pink ">View User Numbers</a>
-      <a href="{{ url_for('users.view_transactions', user_id=user.id) }}" class="btn blue">View User Transactions</a>
+      <a
+        href="{{ url_for('users.view_numbers', user_id=user.id) }}"
+        class="btn pink"
+        >View User Numbers</a
+      >
+      <a
+        href="{{ url_for('users.view_transactions', user_id=user.id) }}"
+        class="btn blue"
+        >View User Transactions</a
+      >
     </div>
   </div>
 </div>
+<script>
+  function openDiscountModal() {
+    document.getElementById("discountModal").style.display = "block";
+  }
+  function closeDiscountModal() {
+    document.getElementById("discountModal").style.display = "none";
+  }
+  // Close on outside click
+  window.onclick = function (event) {
+    const modal = document.getElementById("discountModal");
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  };
+</script>
+
+<script>
+  const servicesByServer = JSON.parse(`{{ services_by_server|tojson|safe }}`);
+
+  function updateServices() {
+    const serverId = document.getElementById("serverSelect").value;
+    const serviceSelect = document.getElementById("serviceSelect");
+    serviceSelect.innerHTML = '<option value="">Select Here</option>';
+
+    if (serverId && servicesByServer[serverId]) {
+      servicesByServer[serverId].forEach((svc) => {
+        const opt = document.createElement("option");
+        opt.value = svc.id;
+        opt.textContent = svc.name;
+        serviceSelect.appendChild(opt);
+      });
+    }
+  }
+
+  function updateServerFromService() {
+    const serviceId = document.getElementById("serviceSelect").value;
+    const serverSelect = document.getElementById("serverSelect");
+
+    for (const [sid, svcs] of Object.entries(servicesByServer)) {
+      if (svcs.some((svc) => svc.id === serviceId)) {
+        serverSelect.value = sid;
+        break;
+      }
+    }
+  }
+</script>
+
 {% endblock %}

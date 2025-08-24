@@ -1,5 +1,8 @@
 from telebot import types
 from models.server import Service
+from services.promos import apply_discount_for_service
+from models.user import User
+
 
 def handle_inline(bot, inline_query):
     query = inline_query.get("query", "").strip().lower()
@@ -39,19 +42,35 @@ def show_server(bot, message):
         return
 
     service_name = parts[1]
-    service = Service.objects(name=service_name)
-    if not service:
+    services = Service.objects(name=service_name)
+    if not services:
         bot.send_message(message["chat"]["id"], f"❌ Service '{service_name}' not found.")
         return
     
-    text = f"➤ Selected Service: {service_name}\n\n ↓ Choose a Server Below"
+    # current user
+    uid = str(message["from"]["id"])
+    user = User.objects(telegram_id=uid).first()
+    if not user:
+        bot.send_message(message["chat"]["id"], "⚠️ Please start bot first with /start")
+        return
 
+    text = f"➤ Selected Service: {service_name}\n\n↓ Choose a Server Below"
     markup = types.InlineKeyboardMarkup()
-    for s in service:
+
+    for s in services:
+        base_price = s.price
+        final_price, redemption, discount = apply_discount_for_service(user, s, base_price)
+
+        if discount:
+            label = f"{s.server.name} → [{s.server.country.split()[0]}] [💎 {final_price} (🎟️ -{discount})]"
+        else:
+            label = f"{s.server.name} → [{s.server.country.split()[0]}] [{base_price} 💎]"
+
         markup.row(
             types.InlineKeyboardButton(
-                text=f"{s.server.name} → [{s.server.country.split()[0]}] [{s.price} 💎]",
+                text=label,
                 callback_data=f"purchase:{s.service_id}"
             )
         )
-    bot.send_message(message["chat"]["id"], text, parse_mode="HTML", reply_markup=markup)      
+
+    bot.send_message(message["chat"]["id"], text, parse_mode="HTML", reply_markup=markup)

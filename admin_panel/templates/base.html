@@ -218,6 +218,12 @@
           <span class="label">Recharges</span>
         </a>
         <a
+          href="{{ url_for('promos.promos') }}"
+          class="{% if request.endpoint == 'promos.promos' %}active{% endif %}">
+          <i class="fa-solid fa-idea"></i>
+          <span class="label">Promo Codes</span>
+        </a>
+        <a
           href="{{ url_for('bot_settings.bot_settings') }}"
           class="{% if request.endpoint == 'bot_settings.bot_settings' %}active{% endif %}">
           <i class="fa-solid fa-gear"></i>

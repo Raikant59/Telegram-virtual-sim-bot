@@ -3,7 +3,10 @@ from models.user import User
 from models.order import Order
 from models.transaction import Transaction
 from models.otp import OtpMessage
-
+from models.promo import PromoRedemption, PromoCode
+from models.server import Server
+from models.server import Service
+import datetime
 
 users_bp = Blueprint('users', __name__, template_folder='../templates')
 
@@ -93,10 +96,72 @@ def user_profile(user_id):
             user.save()
             flash('User status updated', 'success')
             return redirect(url_for('users.user_profile', user_id=user_id))
+        if action == "special_discount":
+            try:
+                percent = float(request.form.get("percent") or 0)
+                flat = float(request.form.get("flat") or 0)
+                service_id = request.form.get("service_id") or None
+                server_id = request.form.get("server_id") or None
+            except ValueError:
+                flash("Invalid discount values", "danger")
+                return redirect(url_for('users.user_profile', user_id=user_id))
 
+            promo = PromoCode.objects(code = "SPECIAL-" + str(user_id).upper()).first()
+            if not promo:
+                promo = PromoCode(
+                    code = "SPECIAL-" + str(user_id).upper(),
+                    type="SPECIAL",
+                    active=True,
+                    created_by="admin",
+                    title="Manual Discount",
+                    start_at=datetime.datetime.utcnow()
+                ).save()
+
+            PromoRedemption(
+                promo=promo,
+                user=user,
+                status="reserved",
+                service=Service.objects(id=service_id).first() if service_id else None,
+                percent=percent if percent > 0 else 0,
+                flat=flat if flat > 0 else 0,
+                service_id=service_id,
+                server_id=server_id,
+                created_at=datetime.datetime.utcnow()
+            ).save()
+
+            flash("Special discount applied to user", "success")
+            return redirect(url_for('users.user_profile', user_id=user_id))
+
+        if action == "remove_discount":
+            redemption_id = request.form.get("discount_id")
+            PromoRedemption.objects(id=redemption_id, user=user).delete()
+            flash("Discount removed", "success")
+            return redirect(url_for('users.user_profile', user_id=user_id))
     # add other actions (special_discount etc.) as needed
 
-    return render_template('user_profile.html', user=user, total_numbers=total_numbers, used_numbers=used_numbers, user_refers_count=user_refers_count)
+    user_discounts = PromoRedemption.objects(user=user, status="reserved")
+    # in user_profile route
+    servers = list(Server.objects())
+    services_by_server = {}
+
+    for s in servers:
+        services_by_server[str(s.id)] = [
+            {"id": str(svc.id), "name": svc.name}
+            for svc in Service.objects(server=s)
+        ]
+
+    return render_template(
+        "user_profile.html",
+        user=user,
+        total_numbers=total_numbers,
+        used_numbers=used_numbers,
+        user_refers_count=user_refers_count,
+        user_discounts=user_discounts,
+        servers=servers,
+        services_by_server=services_by_server
+    )
+
+
 
 
 @users_bp.route('/<user_id>/numbers')

@@ -8,7 +8,7 @@ from utils.worker import notify_new_otp
 from models.otpPending import OtpPending
 from models.admin import Admin
 from bot.libs.Admin_message import purchase_text
-
+from services.promos import apply_discount_for_service, consume_reserved_promo
 
 def update_progress(bot, chat_id, message_id, step):
     """Update progress bar based on step number (1-6)."""
