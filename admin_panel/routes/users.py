@@ -201,7 +201,6 @@ def view_numbers(user_id):
         search=search,
         status=status
     )
-
 @users_bp.route('/<user_id>/transactions')
 def view_transactions(user_id):
     user = User.objects(id=user_id).first() or abort(404)
@@ -217,14 +216,14 @@ def view_transactions(user_id):
         .skip((page-1)*per_page)\
         .limit(per_page)
 
-    # add loop.index for template numbering
+    # Add custom index for template numbering
     for i, t in enumerate(transactions):
         t.index = (page-1)*per_page + i + 1
 
     return render_template(
         'user_transactions.html',
         user=user,
-        trnx=transactions,
+        transactions=transactions,   # 🔹 renamed for consistency with template
         page=page,
         total_pages=total_pages
     )

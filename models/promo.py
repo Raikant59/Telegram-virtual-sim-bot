@@ -2,10 +2,10 @@
 import datetime
 from mongoengine import (
     Document, StringField, DateTimeField, IntField, FloatField,
-    ListField, ReferenceField, 
-    BooleanField
+    ListField, ReferenceField, BooleanField
 )
 from models.server import Service
+
 
 class PromoCode(Document):
     """
@@ -14,6 +14,7 @@ class PromoCode(Document):
       - PERCENT_SERVICE: percent discount for next purchase of applicable services
       - FLAT_SERVICE: flat discount (amount) for next purchase of applicable services
       - LUCKY: random reward: credit or discount reserved for next service
+      - SPECIAL: custom behavior
     """
     code = StringField(required=True, unique=True, regex=r"^[A-Z0-9_-]{4,32}$")
     title = StringField(default="")
@@ -32,6 +33,7 @@ class PromoCode(Document):
     notes = StringField(default="")
     created_by = StringField()             # admin tg id or name
     created_at = DateTimeField(default=datetime.datetime.utcnow)
+
 
 class PromoRedemption(Document):
     promo = ReferenceField(PromoCode, required=True)

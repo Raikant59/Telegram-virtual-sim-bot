@@ -8,7 +8,7 @@ Your user with user id of <code>{user_id}</code> has just bought {service_name} 
 ☎️<b>Number</b>: {number}
 🌱<b>Number id</b>: {order_id}
 🌐<b>Service Price</b>: {price} 💎
-🧩<b>Discount Price</b>: Not Applied
+🧩<b>Discount Price</b>: {discount} 💎
 💰<b>New User Balance</b>: {balance} 💎
 🏦<b>New User API Balance</b>: 0.00 💎'''
 

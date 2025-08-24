@@ -10,6 +10,7 @@ from models.admin import Admin
 from bot.libs.Admin_message import purchase_text
 from services.promos import apply_discount_for_service, consume_reserved_promo
 
+
 def update_progress(bot, chat_id, message_id, step):
     """Update progress bar based on step number (1-6)."""
     progress_states = {
@@ -52,12 +53,20 @@ def handle(bot, call):
     msg = bot.send_message(chat_id, "⚙️ Processing Your Order...\n▮▯▯▯▯▯▯▯▯▯ 10%")
     progress_msg_id = msg.message_id
 
+    # --- DISCOUNT CALCULATION ---
+    base_price = service.price
+    final_price, redemption, discount = apply_discount_for_service(user, service, base_price)
+
     # Step 2 - check balance
-    if user.balance < service.price:
+    if user.balance < final_price:
         markup = InlineKeyboardMarkup()
-        markup.row(InlineKeyboardButton(
-            text="💸 Recharge now", callback_data=f"recharge"))
-        bot.send_message(chat_id, f"❌ Not enough balance. You have {user.balance:.2f} 💎", reply_markup=markup)
+        markup.row(InlineKeyboardButton(text="💸 Recharge now", callback_data=f"recharge"))
+        bot.send_message(
+            chat_id,
+            f"❌ Not enough balance.\nYou have {user.balance:.2f} 💎\n"
+            f"Required: {final_price:.2f} 💎",
+            reply_markup=markup
+        )
         bot.answer_callback_query(call["id"], "💰 Not enough balance!")
         return
     update_progress(bot, chat_id, progress_msg_id, 2)
@@ -110,9 +119,13 @@ def handle(bot, call):
     update_progress(bot, chat_id, progress_msg_id, 5)
 
     # Step 6 - deduct balance + create order
-    user = User.objects(id=user.id, balance__gte=service.price).modify(dec__balance=service.price, new=True)
+    user = User.objects(id=user.id, balance__gte=final_price).modify(dec__balance=final_price, new=True)
     if not user:
-        bot.send_message(chat_id, f"❌ Not enough balance at the moment. You have {User.objects(id=user.id).first().balance:.2f} 💎")
+        bot.send_message(
+            chat_id,
+            f"❌ Not enough balance at the moment. "
+            f"You have {User.objects(id=user.id).first().balance:.2f} 💎"
+        )
         return
 
     order = Order(
@@ -122,7 +135,7 @@ def handle(bot, call):
         number=number,
         provider_order_id=provider_order_id,
         status="active",
-        price=service.price,
+        price=final_price,
         raw_response=parsed,
     )
     order.save()
@@ -130,16 +143,34 @@ def handle(bot, call):
     Transaction(
         user=user,
         type="debit",
-        amount=service.price,
+        amount=final_price,
+        discount=discount if discount else 0,
         closing_balance=user.balance,
         note=f"purchase:{order.id}"
     ).save()
     update_progress(bot, chat_id, progress_msg_id, 6)
 
+    # 🔹 Consume promo redemption if used
+    if redemption:
+        consume_reserved_promo(redemption, service)
+
     # Final confirmation
-    text = (f"📦 {service.name} [{service.server.country.split()[0]}] [ 💎 {service.price} ]\n"
+    text = (
+        f"📦 {service.name} [{service.server.country.split()[0]}] "
+        f"[ 💎 {final_price} ]\n"
+        f"📱 Number: +<code>{number}</code>\n"
+        f"⏳ <i>This Number is valid till</i> {connect.auto_cancel_time} minutes\n"
+    )
+
+    if discount:
+        text = (
+            f"📦 {service.name} [{service.server.country.split()[0]}]\n"
+            f"💰 Base Price: {base_price} 💎\n"
+            f"🎟️ Discount: -{discount} 💎\n"
+            f"✅ Final Price Paid: {final_price} 💎\n\n"
             f"📱 Number: +<code>{number}</code>\n"
-            f"⏳ <i>This Number is valid till</i> {connect.auto_cancel_time} minutes\n")
+            f"⏳ <i>This Number is valid till</i> {connect.auto_cancel_time} minutes\n"
+        )
 
     markup = InlineKeyboardMarkup()
     markup.row(
@@ -164,7 +195,7 @@ def handle(bot, call):
         phone=number,
         order_id=provider_order_id,
         url=connect.get_status_url,
-        price=service.price,
+        price=final_price,
         chat_id=chat_id,
         message_id=msg.message_id,
         cancelTime=connect.auto_cancel_time * 60,
@@ -180,14 +211,13 @@ def handle(bot, call):
         user_id=call["from"]["id"],
         service_name=service.name,
         server_name=service.server.name,
-        username=call["from"]["username"],
+        username=call["from"].get("username"),
         name=call["from"]["first_name"],
         number=number,
+        discount=discount if discount else "Not Applied",
         order_id=provider_order_id,
-        price=service.price,
+        price=final_price,
         balance=user.balance,
     )
     for admin in admins:
         bot.send_message(admin.telegram_id, admin_text)
-
-    

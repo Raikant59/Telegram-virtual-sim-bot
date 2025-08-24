@@ -139,7 +139,7 @@ def otp_worker():
                                     number=otp.phone,
                                     order_id=otp.order_id,
                                     price=otp.price,
-                                    message=otpMessage.raw
+                                    message=otp_token
                                 ))
                             otp.delete()
                 except Exception as e:
