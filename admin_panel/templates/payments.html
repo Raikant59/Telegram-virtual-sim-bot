@@ -2,15 +2,104 @@
 {% block title %}Payments Settings{% endblock %}
 {% block content %}
 <style>
-  header{background:linear-gradient(135deg,#16a085,#2ecc71);color:#fff;padding:20px;border-radius:12px;margin-bottom:18px}
-  .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-  .card{background:#fff;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.08);padding:18px}
-  .card h3{margin:0 0 12px}
-  label{font-weight:600;margin:8px 0 6px;display:block}
-  input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;background:#fafafa}
-  .switch{display:flex;gap:10px;align-items:center;margin:10px 0}
-  .save{background:#2ecc71;border:none;color:#fff;padding:12px 14px;border-radius:10px;font-weight:700}
+  header {
+    background: linear-gradient(135deg,#16a085,#2ecc71);
+    color: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    text-align: center; /* center header text */
+  }
+
+  .grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* allow smaller min width */
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    padding: 16px;
+  }
+
+  .card h3 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+  }
+
+  label {
+    font-weight: 600;
+    margin: 8px 0 6px;
+    display: block;
+    font-size: 0.95rem;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    font-size: 0.95rem;
+  }
+
+  .switch {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 10px 0;
+    font-size: 0.95rem;
+  }
+
+  .save {
+    background: #2ecc71;
+    border: none;
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  /* Responsive fixes */
+  @media (max-width: 768px) {
+    header h2 {
+      font-size: 1.3rem;
+    }
+    .card h3 {
+      font-size: 1rem;
+    }
+    label, input, select, .switch {
+      font-size: 0.9rem;
+    }
+    .save {
+      width: 100%; /* full width save button on small screens */
+    }
+  }
+
+  @media (max-width: 480px) {
+    .grid {
+      grid-template-columns: 1fr; /* single column layout */
+    }
+    header h2 {
+      font-size: 1.1rem;
+    }
+    input, select {
+      font-size: 0.85rem;
+      padding: 8px;
+    }
+  }
+
+  /* Prevent overlap of close button & menu */
+  .close-btn {
+    position: relative;
+    z-index: 2000; /* higher than navbar/menu */
+  }
 </style>
+
 <header><h2>💳 Payment Gateways</h2></header>
 
 <form method="POST">

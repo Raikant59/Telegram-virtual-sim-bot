@@ -9,6 +9,7 @@ class OtpPending(Document):
     url = StringField()
     chat_id = IntField()
     cancel_url = StringField()
+    next_otp_url = StringField()
     price = FloatField()
     message_id = IntField()
     cancelTime = IntField()

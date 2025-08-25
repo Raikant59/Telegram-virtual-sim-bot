@@ -2,25 +2,128 @@
 {% block title %}Manage Servers{% endblock %}
 {% block content %}
 <style>
-  header{background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;padding:20px;text-align:center;}
-  main{max-width:900px;margin:auto;padding:20px;}
-  .card{background:#fff;border-radius:15px;padding:20px;margin-bottom:20px;box-shadow:0 4px 10px rgba(0,0,0,0.08);}
-  label{font-weight:600;display:block;margin:10px 0 6px;}
-  input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;}
-  button{background:#8e44ad;color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600;}
-  button:hover{opacity:.95}
-  ul{list-style:none;padding:0;margin:0}
-  li{display:flex;gap:12px;justify-content:space-between;align-items:center;background:#f9fafb;border-radius:10px;padding:12px;margin-bottom:10px;flex-wrap:wrap;}
-  .row-actions{display:flex;gap:8px}
-  .delete-btn{background:#e74c3c;padding:8px 12px;border:none;border-radius:8px;color:#fff;}
-  .edit-btn{background:#3498db;padding:8px 12px;border:none;border-radius:8px;color:#fff;}
-  @media(max-width:640px){ li{flex-direction:column; align-items:flex-start;} .row-actions{align-self:flex-end;} }
-  .modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:999; align-items:center; justify-content:center;max-height: 90vh;      /* don't exceed 90% of viewport height */
-  overflow-y: auto;      /* enable vertical scroll inside */
-}
-  .modal-content{background:#fff; width:92%; max-width:480px; padding:20px; border-radius:12px; position:relative;}
-  .close{position:absolute; right:12px; top:10px; font-size:20px; cursor:pointer;}
+  header {
+    background: linear-gradient(135deg,#9b59b6,#8e44ad);
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+  }
+
+  main {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+
+  label {
+    font-weight: 600;
+    display: block;
+    margin: 10px 0 6px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+  }
+
+  button {
+    background: #8e44ad;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  button:hover { opacity: .95 }
+
+  ul { list-style: none; padding: 0; margin: 0 }
+  li {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .row-actions { display: flex; gap: 8px }
+
+  .delete-btn {
+    background: #e74c3c;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+  }
+  .edit-btn {
+    background: #3498db;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 9999; /* keep above menu */
+    align-items: center;
+    justify-content: center;
+    padding: 10px; /* some breathing room */
+    overflow-y: auto;
+  }
+  .modal-content {
+    background: #fff;
+    width: 92%;
+    max-width: 480px;
+    padding: 20px;
+    border-radius: 12px;
+    position: relative;
+    margin: auto;
+  }
+  .close {
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 10000;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 768px) {
+    header h1 { font-size: 1.4rem; }
+    main { padding: 12px; }
+    .card { padding: 15px; }
+    label { font-size: 0.9rem; }
+    input, select, button { font-size: 0.9rem; padding: 8px; }
+  }
+
+  @media (max-width: 640px) {
+    li { flex-direction: column; align-items: flex-start; }
+    .row-actions { align-self: flex-end; }
+    .modal-content { width: 100%; margin: 20px; }
+    header h1 { font-size: 1.2rem; }
+  }
 </style>
+
 
 <header><h1>🌐 Manage Servers</h1></header>
 <main>

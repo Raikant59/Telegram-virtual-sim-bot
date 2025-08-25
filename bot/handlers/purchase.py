@@ -200,7 +200,8 @@ def handle(bot, call):
         message_id=msg.message_id,
         cancelTime=connect.auto_cancel_time * 60,
         cancel_url=connect.cancel_url,
-        responseType=connect.response_type
+        next_otp_url=connect.next_number_url,
+        responseType=connect.response_type,
     ).save()
 
     notify_new_otp()

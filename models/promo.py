@@ -2,7 +2,7 @@
 import datetime
 from mongoengine import (
     Document, StringField, DateTimeField, IntField, FloatField,
-    ListField, ReferenceField, BooleanField
+    ListField, ReferenceField, BooleanField, NULLIFY
 )
 from models.server import Service
 
@@ -36,7 +36,7 @@ class PromoCode(Document):
 
 
 class PromoRedemption(Document):
-    promo = ReferenceField(PromoCode, required=True)
+    promo = ReferenceField(PromoCode, reverse_delete_rule=NULLIFY, required=False, null=True)
     user = ReferenceField('User', required=True)
     status = StringField(choices=['granted','reserved','consumed','expired','rejected'], default='granted')
     # if granted as wallet credit:

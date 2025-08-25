@@ -6,6 +6,7 @@ block content %}
     background: #f0f2f5;
     margin: 0;
   }
+
   header {
     background: linear-gradient(135deg, #2ecc71, #27ae60);
     color: #fff;
@@ -13,11 +14,13 @@ block content %}
     text-align: center;
     border-radius: 0 0 20px 20px;
   }
+
   main {
     max-width: 1000px;
     margin: auto;
     padding: 20px;
   }
+
   .card {
     background: #fff;
     border-radius: 15px;
@@ -25,6 +28,7 @@ block content %}
     margin-bottom: 25px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
+
   .card h2 {
     margin: 0 0 15px;
     font-size: 20px;
@@ -38,6 +42,7 @@ block content %}
     color: #444;
     font-size: 14px;
   }
+
   input,
   select,
   textarea {
@@ -50,6 +55,7 @@ block content %}
     background: #fafafa;
     transition: border 0.2s;
   }
+
   input:focus,
   select:focus,
   textarea:focus {
@@ -57,10 +63,12 @@ block content %}
     outline: none;
     background: #fff;
   }
+
   textarea {
     resize: vertical;
     min-height: 60px;
   }
+
   button {
     background: #27ae60;
     color: #fff;
@@ -115,7 +123,7 @@ block content %}
     gap: 8px;
   }
 
-  /* Stack rows on small screens */
+  /* Responsive table */
   @media (max-width: 760px) {
     table,
     thead,
@@ -139,6 +147,7 @@ block content %}
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      font-size: 13px;
     }
     td::before {
       content: attr(data-label);
@@ -150,6 +159,7 @@ block content %}
     }
   }
 
+  /* 🔧 Modal Fix */
   .modal {
     display: none;
     position: fixed;
@@ -158,9 +168,6 @@ block content %}
     align-items: center;
     justify-content: center;
     z-index: 999;
-    max-height: 90vh;      /* don't exceed 90% of viewport height */
-  overflow-y: auto;      /* enable vertical scroll inside */
-
   }
   .modal-content {
     background: #fff;
@@ -169,13 +176,36 @@ block content %}
     max-width: 520px;
     padding: 20px;
     position: relative;
+    max-height: 90vh; /* Correct placement */
+    overflow-y: auto; /* Scroll inside modal */
   }
   .close {
     position: absolute;
-    right: 12px;
+    left: 12px;
     top: 10px;
-    font-size: 20px;
+    font-size: 22px;
     cursor: pointer;
+    z-index: 10000; /* Ensure it stays above everything */
+  }
+
+  /* 🔧 Make text/buttons smaller on mobile */
+  @media (max-width: 480px) {
+    body {
+      font-size: 14px;
+    }
+    input,
+    select,
+    textarea,
+    button {
+      font-size: 13px;
+      padding: 8px 10px;
+    }
+    .card h2 {
+      font-size: 18px;
+    }
+    header h1 {
+      font-size: 20px;
+    }
   }
 </style>
 
