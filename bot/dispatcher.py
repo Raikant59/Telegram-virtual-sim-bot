@@ -61,7 +61,7 @@ def _reject_if_blocked_or_not_member(bot, chat_id, user_id):
         return True
     user = User.objects(telegram_id=user_id).first()
     if user and getattr(user, "blocked", False):
-        bot.send_message(chat_id, "❌ You are banned by admin — you can't use this bot")
+        bot.send_message(chat_id, "❌ You are banned by admin, you can't use this bot")
         return True
     return False
 

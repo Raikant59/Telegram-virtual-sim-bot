@@ -19,29 +19,37 @@ def join_check_keyboard(group_url: str = None, channel_url: str = None) -> Inlin
 
     return kb
 
+from cachetools import TTLCache
 
-def ensure_membership(bot, chat_id, user_id):
+# cache: key=(user_id, chat_id), value=status, expires in 300s
+membership_cache = TTLCache(maxsize=10000, ttl=300)
+
+def ensure_membership(bot, chat_id: int, user_id: str) -> bool:
     links = get_required_links()
     group = links.get("group")
     channel = links.get("channel")
 
+    required_chats = [c for c in (group, channel) if c]
+
     try:
-        if group:
-            m = bot.get_chat_member(group, user_id)
-            if m.status in ["left", "kicked"]:
-                bot.send_message(chat_id,
-                                 "🚨 You must join our group/channel to use this bot.",
-                                 reply_markup=join_check_keyboard(group, channel))
+        for target in required_chats:
+            cache_key = (user_id, target)
+
+            status = membership_cache.get(cache_key)
+            if status is None:
+                status = bot.get_chat_member(target, user_id).status
+                membership_cache[cache_key] = status
+
+            if status in {"left", "kicked"}:
+                bot.send_message(
+                    chat_id,
+                    "🚨 You must join our group/channel to use this bot.",
+                    reply_markup=join_check_keyboard(group, channel),
+                )
                 return False
-        if channel:
-            m = bot.get_chat_member(channel, user_id)
-            if m.status in ["left", "kicked"]:
-                bot.send_message(chat_id,
-                                 "🚨 You must join our group/channel to use this bot.",
-                                 reply_markup=join_check_keyboard(group, channel))
-                return False
+
     except Exception as e:
-        print("Membership check failed:", e)
-        return False
+        bot.logger.warning(f"Membership check failed for {user_id}: {e}")
+        return True
 
     return True
