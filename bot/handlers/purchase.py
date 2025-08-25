@@ -74,13 +74,13 @@ def handle(bot, call):
     # Step 3 - get provider API config
     connect = ConnectApi.objects(server=service.server).first()
     if not connect:
-        bot.answer_callback_query(call["id"], "⚠️ Provider not configured.")
+        bot.answer_callback_query(call["id"], "🚫 Number not available on this  service.")
         return
     try:
         url = connect.get_number_url.format(service_code=service.code)
     except Exception:
-        bot.send_message(chat_id, "⚠️ Provider URL template error — check admin configuration.")
-        bot.answer_callback_query(call["id"], "⚠️ Provider template invalid.")
+        bot.send_message(chat_id, "🚫 Number not available on this  service.")
+        bot.answer_callback_query(call["id"], "🚫 Number not available on this  service.")
         return
     update_progress(bot, chat_id, progress_msg_id, 3)
 
@@ -90,8 +90,8 @@ def handle(bot, call):
         response.raise_for_status()
         raw = response.text
     except Exception as e:
-        bot.send_message(chat_id, f"❌ Error contacting provider: {e}")
-        bot.answer_callback_query(call["id"], "⚠️ Provider request failed.")
+        bot.send_message(chat_id, f"🚫 Number not available on this  service")
+        bot.answer_callback_query(call["id"], "🚫 Number not available on this  service")
         return
     update_progress(bot, chat_id, progress_msg_id, 4)
 
@@ -103,7 +103,7 @@ def handle(bot, call):
             provider_order_id, number = parts[1], parts[2]
             parsed = {"id": provider_order_id, "phone": number}
         else:
-            bot.send_message(chat_id, "⚠️ Unexpected provider response (Text).")
+            bot.send_message(chat_id, "🚫 Number not available on this  service.")
             return
     else:
         try:
@@ -111,10 +111,10 @@ def handle(bot, call):
             provider_order_id = str(parsed.get("id") or parsed.get("order_id") or "")
             number = parsed.get("phone") or parsed.get("number")
             if not provider_order_id or not number:
-                bot.send_message(chat_id, "⚠️ Provider returned incomplete data.")
+                bot.send_message(chat_id, "🚫 Number not available on this  service.")
                 return
         except Exception:
-            bot.send_message(chat_id, "⚠️ Invalid JSON from provider.")
+            bot.send_message(chat_id, "🚫 Number not available on this  service.")
             return
     update_progress(bot, chat_id, progress_msg_id, 5)
 
