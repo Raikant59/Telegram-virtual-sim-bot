@@ -22,31 +22,14 @@ class Dispatcher:
         self.inline_handlers.append(func)
 
     def handle_update(self, update, bot):
-
-
-        if "callback_query" in update:
-            user_id = str(update["callback_query"]["from"]["id"])
-            chat_id = update["callback_query"]["message"]["chat"]["id"]
-
-            if not ensure_membership(bot, chat_id, user_id):
-                return
-            user = User.objects(telegram_id=user_id).first()
-            if user and user.blocked:
-                bot.send_message(update["message"]["chat"]["id"], "❌ You are banned by admin can't use this bot")
-                return
-
         """Manually route updates to correct handler"""
+
         if "message" in update and "text" in update["message"]:
             text = update["message"]["text"]
             user_id = str(update["message"]["from"]["id"])
             chat_id = update["message"]["chat"]["id"]
-            
-            if not ensure_membership(bot, chat_id, user_id):
-                return
-            
-            user = User.objects(telegram_id=user_id).first()
-            if user and user.blocked:
-                bot.send_message(update["message"]["chat"]["id"], "❌ You are banned by admin can't use this bot")
+
+            if _reject_if_blocked_or_not_member(bot, chat_id, user_id):
                 return
 
             if text.startswith("/"):
@@ -58,13 +41,29 @@ class Dispatcher:
                     fn(bot, update["message"])
 
         elif "callback_query" in update:
+            user_id = str(update["callback_query"]["from"]["id"])
+            chat_id = update["callback_query"]["message"]["chat"]["id"]
+
+            if _reject_if_blocked_or_not_member(bot, chat_id, user_id):
+                return
+
             data = update["callback_query"]["data"]
             prefix = data.split(":")[0]
             if prefix in self.callback_handlers:
                 self.callback_handlers[prefix](bot, update["callback_query"])
-        elif "inline_query" in update:  # ✅ handle inline queries
+
+        elif "inline_query" in update:
             for func in self.inline_handlers:
                 func(bot, update["inline_query"])
+
+def _reject_if_blocked_or_not_member(bot, chat_id, user_id):
+    if not ensure_membership(bot, chat_id, user_id):
+        return True
+    user = User.objects(telegram_id=user_id).first()
+    if user and getattr(user, "blocked", False):
+        bot.send_message(chat_id, "❌ You are banned by admin — you can't use this bot")
+        return True
+    return False
 
 # global dispatcher instance
 dispatcher = Dispatcher()
