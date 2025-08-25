@@ -8,6 +8,7 @@ from models.admin import Admin
 from bot.libs.Admin_message import cancel_text
 from models.otp import OtpMessage
 
+
 def handle(bot, call):
     data = call["data"].split(":")
     if len(data) != 2:
@@ -17,7 +18,8 @@ def handle(bot, call):
     provider_order_id = data[1]
     pending_otp = OtpPending.objects(order_id=provider_order_id).first()
     if not pending_otp:
-        bot.send_message(call["message"]["chat"]["id"], "❌ Order is already cancelled.")
+        bot.send_message(call["message"]["chat"]["id"],
+                         "❌ Order is already cancelled.")
         return
 
     # Attempt provider cancel (best-effort)
@@ -27,7 +29,8 @@ def handle(bot, call):
             requests.get(url, timeout=5)
     except Exception as e:
         # don't fail the flow if provider cancel fails
-        bot.send_message(call["message"]["chat"]["id"], "⚠️ We are not able to cancel this request.")
+        bot.send_message(call["message"]["chat"]["id"],
+                         "⚠️ We are not able to cancel this request.")
         return
 
     # Find corresponding Order by provider_order_id and refund if needed
@@ -53,7 +56,7 @@ def handle(bot, call):
     user.reload()
 
     # remove pending otp
-    
+
     text = f"✅ <b>Successfully Cancelled</b>\n<i>+{pending_otp.phone}\n\n"
 
     if isRefund:
@@ -67,15 +70,16 @@ def handle(bot, call):
     admins = Admin.objects()
 
     cancel_text2 = cancel_text.format(
-                user_id=call["from"]["id"],
-                name=call["from"]["first_name"],
-                username=call["from"]["username"],
-                number=pending_otp.phone,
-                order_id=pending_otp.order_id,
-                price=pending_otp.price,
-                balance=user.balance,
-                refund="Refund issued" if isRefund else "Refund not issued")
-    
+        user_id=call["from"]["id"],
+        name=call["from"].get("first_name", "Unknown"),
+        username=call["from"].get("username", "N/A"),
+        number=pending_otp.phone,
+        order_id=pending_otp.order_id,
+        price=pending_otp.price,
+        balance=user.balance,
+        refund="Refund issued" if isRefund else "Refund not issued"
+    )
+
     if not isRefund:
         otps = OtpMessage.objects(order=order)  # query all OTPs for the order
         if otps:
@@ -89,5 +93,5 @@ def handle(bot, call):
             bot.send_message(admin.telegram_id, cancel_text2)
         except Exception as e:
             print(f"Failed to send to {admin.telegram_id}: {e}")
-            pass        
+            pass
     pending_otp.delete()
