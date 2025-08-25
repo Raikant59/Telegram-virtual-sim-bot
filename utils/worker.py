@@ -30,89 +30,101 @@ def otp_worker():
         while True:
             pending_otps = OtpPending.objects()
             if not pending_otps:
-                # If no work left, break the loop and stop this thread
-                break
+                break  # Stop if no jobs
 
             for otp in pending_otps:
-                elapsed_time = (datetime.datetime.utcnow() -
-                                otp.created_at).total_seconds()
+                elapsed_time = (datetime.datetime.utcnow() - otp.created_at).total_seconds()
 
-                # Timeout logic
+                # =====================
+                # Timeout / Auto-cancel
+                # =====================
                 if otp.cancelTime and elapsed_time > otp.cancelTime:
                     try:
                         if otp.cancel_url:
-                            requests.get(otp.cancel_url.format(
-                                id=otp.order_id), timeout=5)
+                            requests.get(otp.cancel_url.format(id=otp.order_id), timeout=5)
                     except Exception:
                         pass
 
-                    order = Order.objects(
-                        provider_order_id=otp.order_id).first()
+                    order = Order.objects(provider_order_id=otp.order_id).first()
+                    if not order:
+                        otp.delete()
+                        continue
 
-                    isRefund = not OtpMessage.objects(order=order).count() > 0
-                    if order and order.status not in ("cancelled", "refunded", "completed"):
+                    # Refund only if NO OTP message exists
+                    has_message = OtpMessage.objects(order=order).count() > 0
+                    isRefund = not has_message
+
+                    if order.status not in ("cancelled", "refunded", "completed"):
                         user = order.user
                         if isRefund:
                             user.balance += order.price
                             user.save()
                             Transaction(
-                                user=user, type="credit", amount=order.price,
-                                closing_balance=user.balance, note=f"timeout_refund:{order.id}"
-                            )
-                        order.status = "cancelled"
+                                user=user,
+                                type="credit",
+                                amount=order.price,
+                                closing_balance=user.balance,
+                                note=f"timeout_refund:{order.id}"
+                            ).save()
+                            order.status = "refunded"
+                        else:
+                            order.status = "cancelled"
                         order.save()
 
                     try:
-                        text = f"⏳ <b>Time limit expired for +{otp.phone}.</b>\n\n"
                         if isRefund:
-                            text = f"<i>You have been refunded +{order.price} 💎</i>"
+                            text = f"⏳ <b>Time limit expired for +{otp.phone}.</b>\n<i>You have been refunded {order.price} 💎</i>"
                         else:
-                            text = f"<i>You have been charged +{order.price} 💎</i>"
-                        bot_instance.send_message(
-                            chat_id=otp.chat_id,
-                            text=text
-                        )
+                            text = f"⏳ <b>Time limit expired for +{otp.phone}.</b>\n<i>No refund was issued.</i>"
+
+                        bot_instance.send_message(chat_id=otp.chat_id, text=text)
 
                         admins = Admin.objects()
                         for admin in admins:
-                            bot_instance.send_message(admin.telegram_id, auto_cancel_text.format(
-                                user_id=otp.user.telegram_id,
-                                name=otp.user.name,
-                                username=otp.user.username,
-                                number=otp.phone,
-                                order_id=otp.order_id,
-                                price=otp.price,
-                                balance=otp.user.balance,
-                                auto_cancel_time=otp.cancelTime / 60,
-                                refund="Refund issued" if isRefund else "No refund"
-                            ))
+                            bot_instance.send_message(
+                                admin.telegram_id,
+                                auto_cancel_text.format(
+                                    user_id=otp.user.telegram_id,
+                                    name=otp.user.name,
+                                    username=otp.user.username,
+                                    number=otp.phone,
+                                    order_id=otp.order_id,
+                                    price=otp.price,
+                                    balance=otp.user.balance,
+                                    auto_cancel_time=otp.cancelTime / 60,
+                                    refund="Refund issued" if isRefund else "No refund"
+                                )
+                            )
                     except Exception:
                         pass
 
                     otp.delete()
                     continue
 
-                # Fetch OTP from provider
+                # =====================
+                # Fetch OTP
+                # =====================
                 try:
                     url = otp.url.format(id=otp.order_id)
                     resp = requests.get(url, timeout=5)
 
                     otp_token = None
                     is_new = False
+                    order = Order.objects(provider_order_id=otp.order_id).first()
+                    if not order:
+                        otp.delete()
+                        continue
 
                     if otp.responseType == "Text":
                         raw = resp.text.strip()
                         if raw.startswith("STATUS_OK") or raw.startswith("ACCESS_OTP") or "OTP" in raw:
                             parts = raw.split(":")
                             otp_token = parts[1] if len(parts) > 1 else raw
-                            order = Order.objects(
-                                provider_order_id=otp.order_id).first()
 
-                            is_new = not OtpMessage.objects(
-                                order=otp.order_id, otp=otp_token).first()
+                            # Avoid duplicate OTPs
+                            is_new = not OtpMessage.objects(order=order, otp=otp_token).first()
 
                             if is_new:
-
                                 otpMessage = OtpMessage(
                                     order=order,
                                     user=otp.user,
@@ -121,82 +133,89 @@ def otp_worker():
                                 ).save()
 
                                 bot_instance.send_message(
-                                    otp.chat_id, f"💭<b>New Message:</b> [<i>+{otp.phone}</i>]\n\n<b>Code:</b> <code>{otp_token}</code>")
-                                
+                                    otp.chat_id,
+                                    f"💭 <b>New Message:</b> [<i>+{otp.phone}</i>]\n\n<b>Code:</b> <code>{otp_token}</code>"
+                                )
+
                                 try:
                                     if otp.next_otp_url:
-                                        requests.get(otp.next_otp_url.format(
-                                    id=otp.order_id), timeout=5)
+                                        requests.get(otp.next_otp_url.format(id=otp.order_id), timeout=5)
                                 except:
                                     pass
 
-
                                 admins = Admin.objects()
                                 for admin in admins:
-                                    bot_instance.send_message(admin.telegram_id, recived_otp_text.format(
-                                        user_id=otp.user.telegram_id,
-                                        name=otp.user.name,
-                                        username=otp.user.username,
-                                        number=otp.phone,
-                                        order_id=otp.order_id,
-                                        price=otp.price,
-                                        message=otpMessage.raw
-                                    ))
+                                    bot_instance.send_message(
+                                        admin.telegram_id,
+                                        recived_otp_text.format(
+                                            user_id=otp.user.telegram_id,
+                                            name=otp.user.name,
+                                            username=otp.user.username,
+                                            number=otp.phone,
+                                            order_id=otp.order_id,
+                                            price=otp.price,
+                                            message=otpMessage.raw
+                                        )
+                                    )
+
                     else:
                         res = resp.json()
                         status = res.get("status") or res.get("state")
-                        otp_token = res.get("otp") or res.get("sms") or None
-                        if status in ("ok", "STATUS_OK", "SUCCESS") or otp_token:
+                        otp_token = res.get("otp") or res.get("sms")
 
-                            order = Order.objects(
-                                provider_order_id=otp.order_id).first()
-                            is_new = not OtpMessage.objects(
-                                order=otp.order_id, otp=otp_token).first()
+                        if status in ("ok", "STATUS_OK", "SUCCESS") or otp_token:
+                            otp_token = otp_token if isinstance(otp_token, str) else str(otp_token)
+
+                            # Avoid duplicates
+                            is_new = not OtpMessage.objects(order=order, otp=otp_token).first()
 
                             if is_new:
                                 otpMessage = OtpMessage(
                                     order=order,
                                     user=otp.user,
-                                    otp=otp_token or str(res),
+                                    otp=otp_token,
                                     raw=res
                                 ).save()
 
                                 bot_instance.send_message(
-                                    otp.chat_id, f"💭<b>New Message:</b> [<i>+{otp.phone}</i>]\n\n<b>Code:</b> <code>{otp_token}</code>")
+                                    otp.chat_id,
+                                    f"💭 <b>New Message:</b> [<i>+{otp.phone}</i>]\n\n<b>Code:</b> <code>{otp_token}</code>"
+                                )
 
                                 try:
                                     if otp.next_otp_url:
-                                        requests.get(otp.next_otp_url.format(
-                                    id=otp.order_id), timeout=5)
+                                        requests.get(otp.next_otp_url.format(id=otp.order_id), timeout=5)
                                 except:
                                     pass
+
                                 admins = Admin.objects()
                                 for admin in admins:
-                                    bot_instance.send_message(admin.telegram_id, recived_otp_text.format(
-                                        user_id=otp.user.telegram_id,
-                                        name=otp.user.name,
-                                        username=otp.user.username,
-                                        number=otp.phone,
-                                        order_id=otp.order_id,
-                                        price=otp.price,
-                                        message=otp_token
-                                    ))
+                                    bot_instance.send_message(
+                                        admin.telegram_id,
+                                        recived_otp_text.format(
+                                            user_id=otp.user.telegram_id,
+                                            name=otp.user.name,
+                                            username=otp.user.username,
+                                            number=otp.phone,
+                                            order_id=otp.order_id,
+                                            price=otp.price,
+                                            message=otp_token
+                                        )
+                                    )
+
                 except Exception as e:
-                    print(e)
+                    print("Fetch OTP Error:", e)
                     pass
 
             time.sleep(1)
 
     finally:
-        # Reset flag when done
         thread_running = False
         if bot_instance:
-            bot_instance.send_message(
-                DEBUG_ADMIN_ID, "🛑 OTP Worker stopped (no more jobs).")
+            bot_instance.send_message(DEBUG_ADMIN_ID, "🛑 OTP Worker stopped (no more jobs).")
 
 
 def notify_new_otp():
-    # Called when new OTP is inserted
     threading.Thread(target=otp_worker, daemon=True).start()
 
 
