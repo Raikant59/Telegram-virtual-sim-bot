@@ -24,7 +24,7 @@ Your user with user id of <code>{user_id}</code> has just cancelled mobile numbe
 🌱<b>Number id</b>: {order_id}
 🌐<b>Service Price</b>: {price} 💎
 🧩<b>Discount Price</b>: Not Applied
-🌱<b>Refund: {refund}
+🌱<b>Refund</b>: {refund}
 💰<b>New User Balance</b>: {balance} 💎
 🏦<b>New User API Balance</b>: 0.00 💎'''
 

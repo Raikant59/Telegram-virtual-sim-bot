@@ -41,7 +41,7 @@ def handle(bot, call):
 
             Transaction(
                 user=user,
-                type="Refund",
+                type="credit",
                 amount=order.price,
                 closing_balance=user.balance,
                 note=f"refund:{order.id}"
@@ -77,15 +77,17 @@ def handle(bot, call):
                 refund="Refund issued" if isRefund else "Refund not issued")
     
     if not isRefund:
-        otps = OtpMessage(order=order)
-        cancel_text2 += "\n💭Message:"
-        for otp in otps:
-            cancel_text2 += otp.otp + "\n"
+        otps = OtpMessage.objects(order=order)  # query all OTPs for the order
+        if otps:
+            cancel_text2 += "\n💭 Message:"
+            for otp in otps:
+                if otp.otp:  # make sure otp field is not None
+                    cancel_text2 += f"\n{otp.otp}"
+
     for admin in admins:
         try:
-            bot.send_message(admin.telegram_id, cancel_text2
-            )
+            bot.send_message(admin.telegram_id, cancel_text2)
         except Exception as e:
-            pass
-        
+            print(f"Failed to send to {admin.telegram_id}: {e}")
+            pass        
     pending_otp.delete()
