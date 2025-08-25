@@ -153,22 +153,27 @@ def handle(bot, call):
     # 🔹 Consume promo redemption if used
     if redemption:
         consume_reserved_promo(redemption, service)
+    
+    country_code = number[:2]      # first 2 digits
+    local_number = number[2:]      # rest of the digits
+
 
     # Final confirmation
     text = (
         f"📦 {service.name} [{service.server.country.split()[0]}] "
         f"[ 💎 {final_price} ]\n"
-        f"📱 Number: +<code>{number}</code>\n"
+        f"📱 Number: +{country_code}<code>{local_number}</code>\n"
         f"⏳ <i>This Number is valid till</i> {connect.auto_cancel_time} minutes\n"
     )
 
+    
     if discount:
         text = (
             f"📦 {service.name} [{service.server.country.split()[0]}]\n"
             f"💰 Base Price: {base_price} 💎\n"
             f"🎟️ Discount: -{discount} 💎\n"
             f"✅ Final Price Paid: {final_price} 💎\n\n"
-            f"📱 Number: +<code>{number}</code>\n"
+            f"📱 Number: +{country_code}<code>{local_number}</code>\n"
             f"⏳ <i>This Number is valid till</i> {connect.auto_cancel_time} minutes\n"
         )
 
