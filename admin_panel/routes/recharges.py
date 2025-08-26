@@ -27,15 +27,26 @@ def recharges():
                 recharge.mark("rejected")
         return redirect(url_for("recharges.recharges"))
 
+    allowed_methods = ["manual", "crypto", "bharatpay"]
     q = (request.args.get("q") or "").strip().lower()
     status = request.args.get("status") or ""
     qs = Recharge.objects
+
+    # search by utr / provider_txn_id
     if q:
         qs = qs.filter(__raw__={"$or": [
             {"utr": {"$regex": q, "$options": "i"}},
             {"provider_txn_id": {"$regex": q, "$options": "i"}},
         ]})
+
+    # filter by status if provided
     if status:
         qs = qs.filter(status=status)
+
+    # ✅ restrict to allowed methods
+    qs = qs.filter(method__in=allowed_methods)
+
+    # order & limit
     recharges = qs.order_by("-created_at")[:300]
+
     return render_template("recharges.html", recharges=recharges, status=status, q=q)
