@@ -7,7 +7,8 @@ import requests
 from models.admin import Admin
 from bot.libs.Admin_message import cancel_text
 from models.otp import OtpMessage
-from datetime import datetime
+import datetime
+
 
 def handle(bot, call):
     data = call["data"].split(":")
