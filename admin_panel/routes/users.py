@@ -69,6 +69,7 @@ def user_profile(user_id):
                 flash('Invalid amount', 'danger')
                 return redirect(url_for('users.user_profile', user_id=user_id))
             user.balance = (user.balance or 0) + amount
+            user.total_recharged += amount
             user.save()
             Transaction(user=user, type='credit', amount=amount,
                         closing_balance=user.balance, note='by admin').save()
@@ -92,6 +93,7 @@ def user_profile(user_id):
                 flash('User does not have enough balance', 'danger')
             else:
                 user.balance = user.balance - amount
+                user.total_recharged = user.total_recharged - amount
                 user.save()
                 Transaction(user=user, type='debit', amount=amount,
                         closing_balance=user.balance, note='by admin').save()

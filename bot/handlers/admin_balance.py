@@ -64,6 +64,7 @@ def handle(bot, message: dict):
                 chat_id, f"❌ User {target_id} doesn’t have enough balance.")
         else:
             user.balance -= amount
+            user.total_recharged -= amount
             user.save()
             bot.send_message(
                 chat_id,
