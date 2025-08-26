@@ -218,7 +218,10 @@ def otp_worker():
 def notify_new_otp():
     threading.Thread(target=otp_worker, daemon=True).start()
 
+WORKER_STARTED = False
 
 def init_worker(bot):
-    global bot_instance
+    global bot_instance,WORKER_STARTED
+    if WORKER_STARTED:
+        return  
     bot_instance = bot
