@@ -24,12 +24,14 @@ def handle(bot, call):
         return
     
     order = Order.objects(provider_order_id=provider_order_id).first()
+    wait_time = (order.created_at + datetime.timedelta(seconds=order.service.disable_time)) - datetime.datetime.utcnow()
+    if wait_time.total_seconds() > 0:
+        bot.send_message(
+            call["message"]["chat"]["id"],
+            f"🔴 You can cancel numbers after {int(wait_time.total_seconds())} seconds. Auto refund in 10 minutes."
+        )
+        return
 
-    if(order.service.disable_time):
-        if(order.created_at + datetime.timedelta(minutes=order.service.disable_time) < datetime.datetime.utcnow()):
-            bot.send_message(call["message"]["chat"]["id"],
-                             "🔴 You can cancel numbers after 5 seconds. Auto refund in 10 minutes")
-            return
 
     # Attempt provider cancel (best-effort)
     try:
