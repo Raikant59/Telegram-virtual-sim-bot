@@ -1,6 +1,7 @@
 from models.user import User
 from bot.libs.helpers import is_admin
 from models.transaction import Transaction
+from models.recharge import Recharge
 
 
 def handle(bot, message: dict):
@@ -48,6 +49,15 @@ def handle(bot, message: dict):
             note="by admin"
         ).save()
 
+        Recharge(
+            user=user,
+            method="admin_add",
+            amount=amount,
+            currency="INR",
+            status="paid",
+        ).save()
+
+
     elif command == "/cut":
         if user.balance < amount:
             bot.send_message(
@@ -65,6 +75,13 @@ def handle(bot, message: dict):
                 amount=amount,
                 closing_balance=user.balance,
                 note="by admin"
+            ).save()
+            Recharge(
+                user=user,
+                method="admin_cut",
+                amount=amount,
+                currency="INR",
+                status="paid", 
             ).save()
     else:
         bot.send_message(chat_id, "⚠️ Unknown command.")

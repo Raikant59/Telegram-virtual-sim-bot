@@ -7,6 +7,7 @@ from models.promo import PromoRedemption, PromoCode
 from models.server import Server
 from models.server import Service
 import datetime
+from models.recharge import Recharge
 
 users_bp = Blueprint('users', __name__, template_folder='../templates')
 
@@ -71,6 +72,13 @@ def user_profile(user_id):
             user.save()
             Transaction(user=user, type='credit', amount=amount,
                         closing_balance=user.balance, note='by admin').save()
+            Recharge(
+                user=user,
+                method="admin_add",
+                amount=amount,
+                currency="INR",
+                status="paid",
+            ).save()
             flash('Balance added', 'success')
             return redirect(url_for('users.user_profile', user_id=user_id))
 
@@ -87,6 +95,13 @@ def user_profile(user_id):
                 user.save()
                 Transaction(user=user, type='debit', amount=amount,
                         closing_balance=user.balance, note='by admin').save()
+                Recharge(
+                    user=user,
+                    method="admin_cut",
+                    amount=amount,
+                    currency="INR",
+                    status="paid", 
+                ).save()
                 flash('Balance cut', 'success')
                 return redirect(url_for('users.user_profile', user_id=user_id))
 

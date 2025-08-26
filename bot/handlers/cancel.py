@@ -7,7 +7,7 @@ import requests
 from models.admin import Admin
 from bot.libs.Admin_message import cancel_text
 from models.otp import OtpMessage
-
+from datetime import datetime
 
 def handle(bot, call):
     data = call["data"].split(":")
@@ -35,6 +35,13 @@ def handle(bot, call):
 
     # Find corresponding Order by provider_order_id and refund if needed
     order = Order.objects(provider_order_id=provider_order_id).first()
+
+    if(order.service.disable_time):
+        if(order.created_at + datetime.timedelta(minutes=order.service.disable_time) < datetime.datetime.utcnow()):
+            bot.send_message(call["message"]["chat"]["id"],
+                             "🔴 You can cancel numbers after 5 seconds. Auto refund in 10 minutes")
+            return
+        
     isRefund = not OtpMessage.objects(order=order).count() > 0
     user = order.user
     if order and order.status not in ("cancelled", "refunded", "completed"):

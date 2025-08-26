@@ -67,6 +67,12 @@ def handle(bot, call):
             f"Required: {final_price:.2f} 💎",
             reply_markup=markup
         )
+        if progress_msg_id:
+            try:
+                bot.delete_message(chat_id, progress_msg_id)
+            except:
+                pass
+
         bot.answer_callback_query(call["id"], "💰 Not enough balance!")
         return
     update_progress(bot, chat_id, progress_msg_id, 2)
@@ -74,13 +80,24 @@ def handle(bot, call):
     # Step 3 - get provider API config
     connect = ConnectApi.objects(server=service.server).first()
     if not connect:
+
         bot.answer_callback_query(call["id"], "🚫 Number not available on this  service.")
+        if progress_msg_id:
+            try:
+                bot.delete_message(chat_id, progress_msg_id)
+            except:
+                pass
         return
     try:
         url = connect.get_number_url.format(service_code=service.code)
     except Exception:
         bot.send_message(chat_id, "🚫 Number not available on this  service.")
         bot.answer_callback_query(call["id"], "🚫 Number not available on this  service.")
+        if progress_msg_id:
+            try:
+                bot.delete_message(chat_id, progress_msg_id)
+            except:
+                pass
         return
     update_progress(bot, chat_id, progress_msg_id, 3)
 
@@ -92,6 +109,11 @@ def handle(bot, call):
     except Exception as e:
         bot.send_message(chat_id, f"🚫 Number not available on this  service")
         bot.answer_callback_query(call["id"], "🚫 Number not available on this  service")
+        if progress_msg_id:
+            try:
+                bot.delete_message(chat_id, progress_msg_id)
+            except:
+                pass
         return
     update_progress(bot, chat_id, progress_msg_id, 4)
 
@@ -104,6 +126,11 @@ def handle(bot, call):
             parsed = {"id": provider_order_id, "phone": number}
         else:
             bot.send_message(chat_id, "🚫 Number not available on this  service.")
+            if progress_msg_id:
+                try:
+                    bot.delete_message(chat_id, progress_msg_id)
+                except:
+                    pass
             return
     else:
         try:
@@ -112,8 +139,18 @@ def handle(bot, call):
             number = parsed.get("phone") or parsed.get("number")
             if not provider_order_id or not number:
                 bot.send_message(chat_id, "🚫 Number not available on this  service.")
+                if progress_msg_id:
+                    try:
+                        bot.delete_message(chat_id, progress_msg_id)
+                    except:
+                        pass
                 return
         except Exception:
+            if progress_msg_id:
+                try:
+                    bot.delete_message(chat_id, progress_msg_id)
+                except:
+                    pass
             bot.send_message(chat_id, "🚫 Number not available on this  service.")
             return
     update_progress(bot, chat_id, progress_msg_id, 5)
@@ -126,6 +163,11 @@ def handle(bot, call):
             f"❌ Not enough balance at the moment. "
             f"You have {User.objects(id=user.id).first().balance:.2f} 💎"
         )
+        if progress_msg_id:
+            try:
+                bot.delete_message(chat_id, progress_msg_id)
+            except:
+                pass
         return
 
     order = Order(

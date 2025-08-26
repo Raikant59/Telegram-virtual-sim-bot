@@ -8,7 +8,7 @@ from .user import User
 
 class Recharge(Document):
     user = ReferenceField(User, required=True)
-    method = StringField(required=True, choices=["manual", "crypto", "bharatpay"])
+    method = StringField(required=True, choices=["manual", "crypto", "bharatpay", "admin_add", "admin_cut"])
     amount = FloatField(required=True)
     currency = StringField(default="INR")
 
