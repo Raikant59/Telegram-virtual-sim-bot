@@ -237,7 +237,7 @@ def handle(bot, call):
         pass
 
     # OTP Watcher
-    OtpPending(
+    otpP = OtpPending(
         user=user,
         phone=number,
         order_id=provider_order_id,
@@ -251,7 +251,7 @@ def handle(bot, call):
         responseType=connect.response_type,
     ).save()
 
-    notify_new_otp()
+    notify_new_otp(str(otpP.id))
 
     # Notify admins
     admins = Admin.objects()

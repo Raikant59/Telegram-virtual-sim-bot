@@ -11,4 +11,10 @@ class OtpMessage(Document):
     raw = DictField()  
     created_at = DateTimeField(default=datetime.datetime.utcnow)
 
-    meta = {"collection": "otp_messages"}
+    meta = {
+        "collection": "otp_messages",
+        "indexes": [
+            {"fields": ["order", "otp"], "unique": True}
+        ]
+    }
+

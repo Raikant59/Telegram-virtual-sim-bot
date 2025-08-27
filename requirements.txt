@@ -6,3 +6,5 @@ requests
 gunicorn
 cuid
 cachetools
+rq
+redis
