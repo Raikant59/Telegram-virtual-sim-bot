@@ -33,7 +33,7 @@ def handle(bot, message):
         user_orders = Order.objects(user=user)
         total_purchased = user_orders.count()
 
-        total_used = OtpMessage.objects(user=user).count()
+        total_used = user_orders.filter(status="completed").count()
 
         text = (
             f"👋 Hello {message['from'].get('first_name', '')} !\n\n"

@@ -1,6 +1,17 @@
 import json
 from telebot.apihelper import ApiTelegramException
 from models.admin import Admin
+from models.user import User
+
+def get_total_user_balance():
+    pipeline = [
+        {"$group": {"_id": None, "total": {"$sum": "$balance"}}}
+    ]
+    result = User.objects.aggregate(*pipeline)
+    result = list(result)
+    return result[0]["total"] if result else 0.0
+
+
 
 
 def safe_edit_message(bot, call, new_text, new_markup):

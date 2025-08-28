@@ -2,6 +2,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from models.user import User
 from utils.config import get_config
 from bot.libs.helpers import safe_edit_message
+from models.order import Order
 
 def handle(bot, call):
     """Handles the Back button → return to main menu"""
@@ -14,9 +15,10 @@ def handle(bot, call):
         return
 
     balance = user.balance
-    total_purchased = 0  # replace with real stats
-    total_used = 0       # replace with real stats
+    user_orders = Order.objects(user=user)
+    total_purchased = user_orders.count()
 
+    total_used = user_orders.filter(status="completed").count()
     # Get support url from config (dynamic from admin panel)
     support_url = get_config("support_url", "")
 

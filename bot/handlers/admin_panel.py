@@ -62,6 +62,8 @@ def handle(bot, message):
         InlineKeyboardButton("Recharges", web_app=WebAppInfo(
             url=f"{FRONTEND_URL}/recharges")),
     )
+    markup.add(InlineKeyboardButton("➕ Total Users Balance", callback_data="admin_total_balance"))
+
     
 
     bot.send_message(chat_id, text, parse_mode="HTML", reply_markup=markup)

@@ -11,27 +11,19 @@ import datetime
 
 
 def handle(bot, call):
-    from mongoengine.queryset.visitor import Q  # For atomic filters
-
     data = call["data"].split(":")
     if len(data) != 2:
         bot.send_message(call["message"]["chat"]["id"], "⚠️ Invalid request.")
         return
 
     provider_order_id = data[1]
-
-    # Claim pending_otp first
     pending_otp = OtpPending.objects(order_id=provider_order_id).first()
     if not pending_otp:
-        bot.send_message(call["message"]["chat"]["id"], "❌ Order is already cancelled.")
+        bot.send_message(call["message"]["chat"]["id"],
+                         "❌ Order is already cancelled.")
         return
-
+    
     order = Order.objects(provider_order_id=provider_order_id).first()
-    if not order:
-        bot.send_message(call["message"]["chat"]["id"], "⚠️ Order not found.")
-        return
-
-    # Wait lock
     wait_time = (order.created_at + datetime.timedelta(seconds=order.service.disable_time)) - datetime.datetime.utcnow()
     if wait_time.total_seconds() > 0:
         bot.send_message(
@@ -40,32 +32,32 @@ def handle(bot, call):
         )
         return
 
-    # Attempt provider cancel
+
+    # Attempt provider cancel (best-effort)
     try:
         if pending_otp.cancel_url:
             url = pending_otp.cancel_url.format(id=provider_order_id)
-            requests.get(url, timeout=5)
-    except Exception:
-        bot.send_message(call["message"]["chat"]["id"], "⚠️ We are not able to cancel this request.")
+            res = requests.get(url, timeout=5)
+
+            if pending_otp.responseType == "Text":
+                if not (res.text.strip().startswith("ACCESS_CANCEL")) :
+                    bot.send_message(call["message"]["chat"]["id"], "⚠️ We are not able to cancel this request.")
+                    return
+    except Exception as e:
+        # don't fail the flow if provider cancel fails
+        bot.send_message(call["message"]["chat"]["id"],
+                         "⚠️ We are not able to cancel this request.")
         return
 
-    # RELOAD order and check if still pending
-    order.reload()
-
+    # Find corresponding Order by provider_order_id and refund if needed
+    
+        
+    isRefund = not OtpMessage.objects(order=order).count() > 0
     user = order.user
-    has_otp = OtpMessage.objects(order=order).count() > 0
-    isRefund = not has_otp
-
-    # Try atomic status update (only if still pending)
-    updated = Order.objects(
-        Q(id=order.id) & Q(status="pending")
-    ).update_one(set__status="cancelled")
-
-    if updated:
+    if order and order.status not in ("cancelled", "refunded", "completed"):
         if isRefund:
-            # Perform refund
-            user.update(inc__balance=order.price)
-            user.reload()  # Get updated balance
+            user.balance += order.price
+            user.save()
 
             Transaction(
                 user=user,
@@ -74,23 +66,26 @@ def handle(bot, call):
                 closing_balance=user.balance,
                 note=f"refund:{order.id}"
             ).save()
-    else:
-        # Already cancelled/refunded/completed — no action
-        isRefund = False
-        order.reload()
 
-    # Clean up
+        order.status = "cancelled"
+        order.save()
+
+    user.reload()
+
+    # remove pending otp
+
     text = f"✅ <b>Successfully Cancelled</b>\n<i>+{pending_otp.phone}\n\n"
+
     if isRefund:
-        text += "We've also issued the refund of this service amount, because the number wasn't used.</i>"
+        text += "We've also Issued the refund of this service amount, because the number wasnt used</i>"
     else:
-        text += "There is no refund as the number was used or already cancelled.</i>"
+        text += "There is no refund as the number is used </i>"
 
     bot.send_message(call["message"]["chat"]["id"], text)
     bot.answer_callback_query(call["id"], "✅ Cancelled.")
-
-    # Notify admins
+    # notify admins
     admins = Admin.objects()
+
     cancel_text2 = cancel_text.format(
         user_id=call["from"]["id"],
         name=call["from"].get("first_name", "Unknown"),
@@ -103,17 +98,17 @@ def handle(bot, call):
     )
 
     if not isRefund:
-        otps = OtpMessage.objects(order=order)
+        otps = OtpMessage.objects(order=order)  # query all OTPs for the order
         if otps:
             cancel_text2 += "\n💭 Message:"
             for otp in otps:
-                if otp.otp:
+                if otp.otp:  # make sure otp field is not None
                     cancel_text2 += f"\n{otp.otp}"
 
     for admin in admins:
         try:
             bot.send_message(admin.telegram_id, cancel_text2)
         except Exception as e:
-            print(f"Failed to notify {admin.telegram_id}: {e}")
-
+            print(f"Failed to send to {admin.telegram_id}: {e}")
+            pass
     pending_otp.delete()

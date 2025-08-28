@@ -96,6 +96,7 @@ def redeem_code(bot, user: User, raw_code: str):
             if outcome[0] == 'credit':
                 amount = max(0.0, outcome[1])
                 user.balance += amount
+                user.total_recharged += amount
                 user.save()
                 Transaction(user=user, type="credit", amount=amount,
                             closing_balance=user.balance, note=f"promo:{promo.code}:lucky").save()

@@ -31,6 +31,7 @@ def callback_handlers(dispatcher):
     dispatcher.register_callback("profile", profile.handle)
     dispatcher.register_callback("history", history.handle)
     dispatcher.register_callback("nums", admin_numbers.handle_callback)
+    dispatcher.register_callback("admin_total_balance", admin_balance.handle_callback)
  
 def inline_handlers(dispatcher):
     dispatcher.register_inline(inline_services.handle_inline)

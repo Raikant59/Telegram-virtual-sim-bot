@@ -2,6 +2,7 @@ from models.user import User
 from bot.libs.helpers import is_admin
 from models.transaction import Transaction
 from models.recharge import Recharge
+from bot.libs.helpers import get_total_user_balance
 
 
 def handle(bot, message: dict):
@@ -36,6 +37,7 @@ def handle(bot, message: dict):
 
     if command == "/add":
         user.balance += amount
+        user.total_recharged += amount
         user.save()
         bot.send_message(
             chat_id,
@@ -86,3 +88,22 @@ def handle(bot, message: dict):
             ).save()
     else:
         bot.send_message(chat_id, "⚠️ Unknown command.")
+
+
+def handle_callback(bot, call):
+    """Handles Balance callback"""
+    user_id = str(call["from"]["id"])
+    user = User.objects(telegram_id=user_id).first()
+
+    if not is_admin(user_id):
+        bot.send_message(
+            user_id, "❌ You are not authorized to use this command.")
+        return
+    
+    total = get_total_user_balance()
+    bot.answer_callback_query(call["id"])
+    bot.send_message(
+        call["message"]["chat"]["id"],
+        f"💰 <b>Total Balance of All Users:</b> ₹<code>{total:.2f}</code>",
+        parse_mode="HTML"
+    )
