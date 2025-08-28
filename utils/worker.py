@@ -2,6 +2,8 @@ import threading
 import time
 import requests
 import datetime
+import redis
+
 from models.otpPending import OtpPending
 from models.otp import OtpMessage
 from models.order import Order
@@ -9,19 +11,49 @@ from models.transaction import Transaction
 from bot.libs.Admin_message import auto_cancel_text, recived_otp_text
 from models.admin import Admin
 
+# ===========================
+# Redis Setup
+# ===========================
+redis_client = redis.Redis(host="127.0.0.1", port=6379, db=0)
+LOCK_KEY = "otp_worker_lock"
+LOCK_TTL = 30 
+
 bot_instance = None
 otp_lock = threading.Lock()
-thread_running = False  # To avoid multiple workers
-
+worker_thread = None
 DEBUG_ADMIN_ID = 1443989714
 
 
+# ===============
+# Lock Functions
+# ===============
+def acquire_lock():
+    """
+    Try to acquire the Redis lock.
+    Returns True if successful, False if already locked.
+    """
+    return redis_client.set(LOCK_KEY, "locked", ex=LOCK_TTL, nx=True)
+
+
+def refresh_lock():
+    """Extend lock TTL while worker is alive."""
+    redis_client.expire(LOCK_KEY, LOCK_TTL)
+
+
+def release_lock():
+    """Release the lock when worker stops."""
+    redis_client.delete(LOCK_KEY)
+
+
+# ===============
+# Worker Function
+# ===============
 def otp_worker():
-    global thread_running
-    with otp_lock:
-        if thread_running:
-            return  # Already running
-        thread_running = True
+    global worker_thread
+
+    if not acquire_lock():
+        print("⚠️ Another process is already running the worker.")
+        return
 
     try:
         if bot_instance:
@@ -125,7 +157,7 @@ def otp_worker():
                             is_new = not OtpMessage.objects(order=order, otp=otp_token).first()
 
                             if is_new:
-                                otpMessage = OtpMessage(
+                                OtpMessage(
                                     order=order,
                                     user=otp.user,
                                     otp=otp_token,
@@ -170,7 +202,7 @@ def otp_worker():
                             is_new = not OtpMessage.objects(order=order, otp=otp_token).first()
 
                             if is_new:
-                                otpMessage = OtpMessage(
+                                OtpMessage(
                                     order=order,
                                     user=otp.user,
                                     otp=otp_token,
@@ -207,21 +239,30 @@ def otp_worker():
                     print("Fetch OTP Error:", e)
                     pass
 
+            # Keep refreshing lock
+            refresh_lock()
             time.sleep(1)
 
     finally:
-        thread_running = False
+        release_lock()
         if bot_instance:
             bot_instance.send_message(DEBUG_ADMIN_ID, "🛑 OTP Worker stopped (no more jobs).")
+        with otp_lock:
+            worker_thread = None
 
 
+# ===============
+# Thread Spawner
+# ===============
 def notify_new_otp():
-    threading.Thread(target=otp_worker, daemon=True).start()
+    global worker_thread
+    with otp_lock:
+        if worker_thread and worker_thread.is_alive():
+            return  # Already running in this process
+        worker_thread = threading.Thread(target=otp_worker, daemon=True)
+        worker_thread.start()
 
-WORKER_STARTED = False
 
 def init_worker(bot):
-    global bot_instance,WORKER_STARTED
-    if WORKER_STARTED:
-        return  
+    global bot_instance
     bot_instance = bot
