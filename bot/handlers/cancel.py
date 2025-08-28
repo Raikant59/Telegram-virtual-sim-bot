@@ -74,12 +74,12 @@ def handle(bot, call):
 
     # remove pending otp
 
-    text = f"✅ <b>Successfully Cancelled</b>\n<i>+{pending_otp.phone}\n\n"
+    text = f""
 
     if isRefund:
-        text += "We've also Issued the refund of this service amount, because the number wasnt used</i>"
+        text += "✅ <b>Successfully Cancelled</b>\n<i>+{pending_otp.phone}\n\nWe've also Issued the refund of this service amount, because the number wasnt used</i>"
     else:
-        text += "There is no refund as the number is used </i>"
+        text += "✅ <b>Your Order Successfully</b>\n<i>+{pending_otp.phone}\n\nThere is no refund as the number is used </i>"
 
     bot.send_message(call["message"]["chat"]["id"], text)
     bot.answer_callback_query(call["id"], "✅ Cancelled.")
