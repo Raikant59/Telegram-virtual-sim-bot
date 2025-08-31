@@ -251,7 +251,7 @@ def handle(bot, call):
         responseType=connect.response_type,
     ).save()
 
-    notify_new_otp(str(otpP.id))
+    notify_new_otp()
 
     # Notify admins
     admins = Admin.objects()
