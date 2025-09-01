@@ -4,6 +4,7 @@ from models.user import User
 from models.order import Order
 from models.recharge import Recharge
 from models.promo import PromoRedemption
+from models.otp import OtpMessage
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
@@ -14,8 +15,12 @@ def dashboard():
     users_count = User.objects.count()
     today_users = User.objects(created_at__gte=date.today()).count()
 
-    orders_count = Order.objects(status="completed").count()
-    today_orders = Order.objects(status="completed", created_at__gte=date.today()).count()
+    order_ids = OtpMessage.objects().distinct("order")
+    order_ids_today = OtpMessage.objects(created_at__gte=date.today()).distinct("order")
+
+
+    orders_count = len(order_ids)
+    today_orders = len(order_ids_today)
 
     include_methods = ["manual", "crypto", "bharatpay", "admin_add"]
 
