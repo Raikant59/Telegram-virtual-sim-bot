@@ -10,7 +10,7 @@ from models.order import Order
 from models.transaction import Transaction
 from bot.libs.Admin_message import auto_cancel_text, recived_otp_text
 from models.admin import Admin
-
+from bot.libs.helpers import build_messages_block
 # ===========================
 # Redis Setup
 # ===========================
@@ -124,9 +124,11 @@ def otp_worker():
                                     price=otp.price,
                                     balance=otp.user.balance,
                                     auto_cancel_time=otp.cancelTime / 60,
-                                    refund="Refund issued" if isRefund else "No refund"
+                                    refund="Refund issued" if isRefund else "No refund",
+                                    messages_block=build_messages_block(order)  # ✅ include messages
                                 )
                             )
+
                     except Exception:
                         pass
 

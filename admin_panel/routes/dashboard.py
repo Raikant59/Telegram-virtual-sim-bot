@@ -34,13 +34,11 @@ def dashboard():
     promo_sum = PromoRedemption.objects(status="granted").sum("amount_credit") or 0
     promo_sum_today = PromoRedemption.objects(status="granted", created_at__gte=date.today()).sum("amount_credit") or 0
 
-    # breakdown
-    admin_cut_sum = Recharge.objects(status="paid", method="admin_cut").sum("amount") or 0
-    admin_cut_sum_today = Recharge.objects(status="paid", method="admin_cut", created_at__gte=date.today()).sum("amount") or 0
 
 
-    total_payments = total_recharge + promo_sum - admin_cut_sum
-    today_payments = today_recharge + promo_sum_today - admin_cut_sum_today
+
+    total_payments = total_recharge + promo_sum
+    today_payments = today_recharge + promo_sum_today
 
     
     return render_template("dashboard.html",

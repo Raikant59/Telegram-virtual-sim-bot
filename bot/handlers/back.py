@@ -3,6 +3,7 @@ from models.user import User
 from utils.config import get_config
 from bot.libs.helpers import safe_edit_message
 from models.order import Order
+from models.otp import OtpMessage
 
 def handle(bot, call):
     """Handles the Back button → return to main menu"""
@@ -18,7 +19,8 @@ def handle(bot, call):
     user_orders = Order.objects(user=user)
     total_purchased = user_orders.count()
 
-    total_used = user_orders.filter(status="completed").count()
+    order_ids = OtpMessage.objects(user=user).distinct("order")
+    total_used = len(order_ids)
     # Get support url from config (dynamic from admin panel)
     support_url = get_config("support_url", "")
 

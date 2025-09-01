@@ -1,6 +1,7 @@
 import json
 from telebot.apihelper import ApiTelegramException
 from models.admin import Admin
+from models.otp import OtpMessage
 from models.user import User
 
 def get_total_user_balance():
@@ -11,7 +12,13 @@ def get_total_user_balance():
     result = list(result)
     return result[0]["total"] if result else 0.0
 
-
+def build_messages_block(order):
+    messages = [m.otp for m in OtpMessage.objects(order=order)]
+    if not messages:
+        return ""  # no OTPs for this order → don't show block
+    
+    formatted_msgs = "\n".join([f"{i+1}. {msg}" for i, msg in enumerate(messages)])
+    return f"✉️<b>Messages</b>:\n{formatted_msgs}"
 
 
 def safe_edit_message(bot, call, new_text, new_markup):

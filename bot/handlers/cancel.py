@@ -38,12 +38,15 @@ def handle(bot, call):
         if pending_otp.cancel_url:
             url = pending_otp.cancel_url.format(id=provider_order_id)
             res = requests.get(url, timeout=5)
+            print("Cancel URL Response:", res.text)
 
             if pending_otp.responseType == "Text":
                 if not (res.text.strip().startswith("ACCESS_CANCEL")) :
                     bot.send_message(call["message"]["chat"]["id"], "⚠️ We are not able to cancel this request.")
                     return
     except Exception as e:
+
+        print("Cancel URL Error:", e)
         # don't fail the flow if provider cancel fails
         bot.send_message(call["message"]["chat"]["id"],
                          "⚠️ We are not able to cancel this request.")

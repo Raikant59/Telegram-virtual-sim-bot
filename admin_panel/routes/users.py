@@ -57,7 +57,8 @@ def user_profile(user_id):
 
     # derived stats
     total_numbers = Order.objects(user=user).count()
-    used_numbers = Order.objects(user=user, status='completed').count()
+    order_ids = OtpMessage.objects(user=user).distinct("order")
+    used_numbers = len(order_ids)
     user_refers_count = getattr(user, 'refers', 0)
 
     if request.method == 'POST':
@@ -93,7 +94,6 @@ def user_profile(user_id):
                 flash('User does not have enough balance', 'danger')
             else:
                 user.balance = user.balance - amount
-                user.total_recharged = user.total_recharged - amount
                 user.save()
                 Transaction(user=user, type='debit', amount=amount,
                         closing_balance=user.balance, note='by admin').save()
