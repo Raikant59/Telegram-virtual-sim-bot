@@ -55,13 +55,28 @@ def build_numbers_message(user, page=1):
 
     # build inline keyboard
     kb = types.InlineKeyboardMarkup()
-    buttons = []
+
+    # --- Row 1: page numbers ---
+    num_row = []
     if page > 1:
-        buttons.append(types.InlineKeyboardButton("⬅️ Prev", callback_data=f"nums:{user.telegram_id}:{page-1}"))
+        num_row.append(types.InlineKeyboardButton(str(page - 1), callback_data=f"nums:{user.telegram_id}:{page-1}"))
+
+    num_row.append(types.InlineKeyboardButton(f"[ {page} ]", callback_data="noop"))
+
     if page < pages:
-        buttons.append(types.InlineKeyboardButton("Next ➡️", callback_data=f"nums:{user.telegram_id}:{page+1}"))
-    if buttons:
-        kb.row(*buttons)
+        num_row.append(types.InlineKeyboardButton(str(page + 1), callback_data=f"nums:{user.telegram_id}:{page+1}"))
+
+    kb.row(*num_row)
+
+    # --- Row 2: Prev/Next ---
+    nav_row = []
+    if page > 1:
+        nav_row.append(types.InlineKeyboardButton("⬅️ Prev", callback_data=f"nums:{user.telegram_id}:{page-1}"))
+    if page < pages:
+        nav_row.append(types.InlineKeyboardButton("Next ➡️", callback_data=f"nums:{user.telegram_id}:{page+1}"))
+
+    if nav_row:
+        kb.row(*nav_row)
 
     return "\n".join(msg_lines), kb
 
