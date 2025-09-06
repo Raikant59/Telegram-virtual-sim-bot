@@ -1,0 +1,41 @@
+{% for t in transactions %}
+<div
+  class="txn-card"
+  style="
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    margin: 12px 0;
+  ">
+  <div style="display: flex; align-items: center; gap: 15px; padding: 10px; text-wrap: wrap;">
+    <div
+      style="font-size:16px; font-weight:bold; color:{{ 'green' if t.type=='credit' else 'red' }};">
+      {{ '+' if t.type=='credit' else '-' }}{{ '%.2f'|format(t.amount) }}
+    </div>
+    <div>
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 6px;
+        ">
+        <span style="font-size: 18px">✉️</span>
+        <span style="font-weight: 500; font-size: 15px"> {{ t.note }} </span>
+      </div>
+
+      <div style="margin-top: 6px; font-size: 14px">
+        Closing Balance: ₹{{ '%.2f'|format(t.closing_balance) }}
+      </div>
+    </div>
+  </div>
+
+  <hr style="margin: 8px 0; border: none; border-top: 1px solid #eee" />
+  <div style="font-size: 12px; color: #666">
+    Apply Date: {{ t.created_at.strftime("%a %b %d %Y, %I:%M:%S %p") }}
+  </div>
+</div>
+{% endfor %} {% if not transactions %}
+<p style="color: #888; text-align: center">No transactions found.</p>
+{% endif %}

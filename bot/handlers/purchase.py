@@ -184,7 +184,7 @@ def handle(bot, call):
 
     Transaction(
         user=user,
-        type="debit",
+        type=f"Bought a mobile number using {service.name} from {service.server.name}",
         amount=final_price,
         discount=discount if discount else 0,
         closing_balance=user.balance,

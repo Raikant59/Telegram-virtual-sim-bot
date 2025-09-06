@@ -1,0 +1,87 @@
+{% for o in orders %}
+<div
+  style="
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  "
+  onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.12)'"
+  onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'"
+>
+  <!-- Header (Number & Status) -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <div style="font-size: 16px; font-weight: 700; color: #111827;">
+      📞 {{ o.number }}
+    </div>
+    {% if o.status in ["cancelled", "refunded"] %}
+    <span style="
+      font-size: 12px;
+      background: #fee2e2;
+      color: #b91c1c;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    ">
+      {{ o.status|capitalize }}
+    </span>
+    {% else %}
+    <span style="
+      font-size: 12px;
+      background: #d1fae5;
+      color: #047857;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    ">
+      {{ o.status|capitalize }}
+    </span>
+    {% endif %}
+  </div>
+
+  <!-- Service & Server -->
+  <div style="font-size: 14px; color: #374151; margin-bottom: 6px;">
+    <strong>Service:</strong> {{ o.service.name }} <br />
+    <strong>Server:</strong> {{ o.server.name }}
+  </div>
+
+  <!-- Amount -->
+  <div style="font-size: 14px; margin-bottom: 8px;">
+    <strong>Amount:</strong>
+    <span style="color: #2563eb; font-weight: 600;">₹{{ "%.2f"|format(o.price) }}</span>
+  </div>
+
+  <!-- Messages / OTP -->
+  <div style="margin-top: 10px;">
+    <strong style="font-size: 14px; color: #111827;">Messages:</strong>
+    {% if otp_map.get(o.id|string) %}
+    <ul style="margin: 6px 0; padding-left: 18px; font-size: 13px; color: #374151;">
+      {% for otp in otp_map[o.id|string] %}
+      <li style="margin-bottom: 4px;">
+        <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">{{ otp.otp }}</code>
+        <span style="font-size: 12px; color: #6b7280;">
+          ({{ otp.created_at.strftime("%Y-%m-%d %H:%M:%S") }})
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <span style="color: #9ca3af; font-size: 13px;">No Message Received...</span>
+    {% endif %}
+  </div>
+
+  <!-- Issued On -->
+  <div style="font-size: 12px; color: #6b7280; margin-top: 10px; border-top: 1px dashed #e5e7eb; padding-top: 6px;">
+    <strong>Issued On:</strong> {{ o.created_at.strftime("%a %b %d %Y, %I:%M:%S %p") }}
+  </div>
+</div>
+{% endfor %}
+
+{% if not orders %}
+<p style="color: #9ca3af; text-align: center; margin-top: 20px; font-size: 14px;">
+  No numbers found.
+</p>
+{% endif %}

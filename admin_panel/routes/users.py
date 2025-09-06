@@ -48,6 +48,50 @@ def users_list():
         status=status
     )
 
+@users_bp.route('/<user_id>/transactions/data')
+def transactions_data(user_id):
+    user = User.objects(id=user_id).first() or abort(404)
+    page = int(request.args.get('page', 1))
+    per_page = 15
+    transactions = Transaction.objects(user=user).order_by('-created_at').skip((page-1)*per_page).limit(per_page)
+
+    if not transactions:
+        return ""   # return nothing → frontend will handle
+
+    return render_template('partials/transactions_list.html', transactions=transactions)
+@users_bp.route('/<user_id>/numbers/data')
+def numbers_data(user_id):
+    user = User.objects(id=user_id).first() or abort(404)
+    page = int(request.args.get('page', 1))
+    per_page = 15
+
+    orders = (
+        Order.objects(user=user)
+        .order_by('-created_at')
+        .skip((page - 1) * per_page)
+        .limit(per_page)
+    )
+
+    # Collect IDs for current orders
+    order_ids = [o.id for o in orders]
+
+    # Fetch all OTP messages for these orders
+    otps = (
+        OtpMessage.objects(order__in=order_ids)
+        .order_by('created_at')  # oldest → newest
+    )
+
+    # Group OTPs by order
+    otp_map = {}
+    for otp in otps:
+        oid = str(otp.order.id)
+        otp_map.setdefault(oid, []).append(otp)
+
+    return render_template(
+        "partials/numbers_list.html",
+        orders=orders,
+        otp_map=otp_map
+    )
 
 @users_bp.route('/<user_id>', methods=['GET', 'POST'])
 def user_profile(user_id):

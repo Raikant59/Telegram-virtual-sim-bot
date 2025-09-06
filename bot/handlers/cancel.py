@@ -8,7 +8,7 @@ from models.admin import Admin
 from bot.libs.Admin_message import cancel_text
 from models.otp import OtpMessage
 import datetime
-
+from telebot import types
 
 def handle(bot, call):
     data = call["data"].split(":")
@@ -41,7 +41,7 @@ def handle(bot, call):
             print("Cancel URL Response:", res.text)
 
             if pending_otp.responseType == "Text":
-                if not (res.text.strip().startswith("ACCESS_CANCEL")) :
+                if not (res.text.strip().startswith("ACCESS_CANCEL") or res.text.strip().startswith("NO_ACTIVATION")):
                     bot.send_message(call["message"]["chat"]["id"], "⚠️ We are not able to cancel this request.")
                     return
     except Exception as e:
@@ -64,7 +64,7 @@ def handle(bot, call):
 
             Transaction(
                 user=user,
-                type="credit",
+                type=f"refund issued for not using mobile number {order.number}",
                 amount=order.price,
                 closing_balance=user.balance,
                 note=f"refund:{order.id}"
@@ -84,7 +84,15 @@ def handle(bot, call):
     else:
         text += f"✅ <b>Your Order Successfully</b>\n<i>+{pending_otp.phone}\n\nThere is no refund as the number is used </i>"
 
-    bot.send_message(call["message"]["chat"]["id"], text)
+    markup = types.InlineKeyboardMarkup()
+    markup.row(
+            types.InlineKeyboardButton(
+                text="Buy Again →",
+                callback_data=f"purchase:{order.service.service_id}"
+            )
+        )
+
+    bot.send_message(call["message"]["chat"]["id"], text, reply_markup=markup)
     bot.answer_callback_query(call["id"], "✅ Cancelled.")
     # notify admins
     admins = Admin.objects()

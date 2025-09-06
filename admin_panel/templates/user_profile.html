@@ -205,48 +205,71 @@ content %}
     font-size: 14px;
   }
   /* ===== Modal Styling ===== */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(3px);
-    max-height: 90vh;      /* don't exceed 90% of viewport height */
-  overflow-y: auto;      /* enable vertical scroll inside */
+  /* General Modal Overlay */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0; /* full screen */
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  align-items: flex-end; /* slide from bottom on mobile */
+  justify-content: center;
+  transition: opacity 0.2s ease-in-out;
+}
 
+/* Modal content */
+.modal-content {
+  background: #fff;
+  border-radius: 16px 16px 0 0; /* rounded top for bottom sheet style */
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 16px 20px;
+  position: relative;
+  animation: slideUp 0.25s ease-out;
+}
+
+/* Close button */
+.modal .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #444;
+  cursor: pointer;
+  z-index: 2;
+}
+.modal .close-btn:active {
+  transform: scale(0.9);
+}
+
+/* Drag handle for mobile */
+.modal-content::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 5px;
+  background: #ccc;
+  border-radius: 3px;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
   }
-  .modal-content {
-    background: #fff;
-    margin: 5% auto;
-    padding: 20px 30px;
-    border-radius: 16px;
-    max-width: 500px;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
-    animation: fadeIn 0.3s ease-out;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
-  .modal-content select,
-  .modal-content input {
-    width: 100%;
-    padding: 8px 10px;
-    margin-bottom: 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    font-size: 14px;
-  }
-  .close {
-    float: right;
-    font-size: 22px;
-    cursor: pointer;
-    color: #999;
-  }
-  .close:hover {
-    color: #333;
-  }
+}
+
 
   /* ===== Responsive ===== */
   @media (max-width: 900px) {
@@ -445,16 +468,121 @@ content %}
         <button class="btn cut" type="submit">Cut Balance</button>
       </form>
 
-      <a
-        href="{{ url_for('users.view_numbers', user_id=user.id) }}"
-        class="btn pink"
-        >View User Numbers</a
-      >
-      <a
-        href="{{ url_for('users.view_transactions', user_id=user.id) }}"
-        class="btn blue"
-        >View User Transactions</a
-      >
+      <button class="btn blue" onclick="openTransactions('{{ user.id }}')">
+        View Transactions
+      </button>
+      <button class="btn pink" onclick="openNumbers('{{ user.id }}')">
+        View Numbers
+      </button>
+    </div>
+  </div>
+
+  <!-- Transactions Modal -->
+  <div
+    class="modal"
+    id="transactionsModal"
+    style="
+      display: none;
+      position: fixed;
+      top: 20px;
+      inset: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    ">
+    <div
+      class="modal-content"
+      style="
+        background: #fff;
+        border-radius: 12px;
+        width: 95%;
+        max-width: 480px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      ">
+      <!-- Close Button -->
+      <span
+        onclick="closeModal('transactionsModal')"
+        style="
+          position: absolute;
+          left: 15px;
+          top: 12px;
+          font-size: 28px;
+          cursor: pointer;
+          font-weight: bold;
+          color: #333;
+        ">
+        &times;
+      </span>
+
+      <h2 style="text-align: center; margin: 15px 0">Transactions</h2>
+
+      <!-- Scrollable list -->
+      <div
+        id="transactionsList"
+        style="flex: 1; overflow-y: auto; padding: 10px"></div>
+      <div
+        id="transactionsLoader"
+        style="text-align: center; padding: 10px; display: none">
+        Loading...
+      </div>
+    </div>
+  </div>
+
+  <!-- Numbers Modal -->
+  <div
+    class="modal"
+    id="numbersModal"
+    style="
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    ">
+    <div
+      class="modal-content"
+      style="
+        background: #fff;
+        border-radius: 12px;
+        width: 95%;
+        max-width: 480px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      ">
+      <!-- Close Button -->
+      <span
+        onclick="closeModal('numbersModal')"
+        style="
+          position: absolute;
+          left: 15px;
+          top: 12px;
+          font-size: 28px;
+          cursor: pointer;
+          font-weight: bold;
+          color: #333;
+        ">
+        &times;
+      </span>
+
+      <h2 style="text-align: center; margin: 15px 0">Numbers</h2>
+
+      <!-- Scrollable list -->
+      <div
+        id="numbersList"
+        style="flex: 1; overflow-y: auto; padding: 10px"></div>
+      <div
+        id="numbersLoader"
+        style="text-align: center; padding: 10px; display: none">
+        Loading...
+      </div>
     </div>
   </div>
 </div>
@@ -503,6 +631,124 @@ content %}
       }
     }
   }
+</script>
+<script>
+  let currentTxnPage = 1,
+    currentNumPage = 1,
+    txnLoading = false,
+    numLoading = false;
+
+  function openTransactions(userId) {
+    currentTxnPage = 1;
+    txnLoading = false;
+    const list = document.getElementById("transactionsList");
+    list.innerHTML = "";
+    loadTransactions(userId);
+    document.getElementById("transactionsModal").style.display = "flex";
+  }
+
+  function openNumbers(userId) {
+    currentNumPage = 1;
+    numLoading = false;
+    const list = document.getElementById("numbersList");
+    list.innerHTML = "";
+    loadNumbers(userId);
+    document.getElementById("numbersModal").style.display = "flex";
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).style.display = "none";
+    hasMoreNum = true;
+    hasMoreTxn = true;
+  }
+
+  let hasMoreTxn = true; // add global flag
+
+  function loadTransactions(userId) {
+    if (txnLoading || !hasMoreTxn) return; // stop if already loading OR no more data
+    txnLoading = true;
+    document.getElementById("transactionsLoader").style.display = "block";
+
+    fetch(`/admin/users/${userId}/transactions/data?page=${currentTxnPage}`)
+      .then((res) => res.text())
+      .then((html) => {
+        if (html.trim() !== "") {
+          document
+            .getElementById("transactionsList")
+            .insertAdjacentHTML("beforeend", html);
+          currentTxnPage++;
+        } else {
+          hasMoreTxn = false; // 🚫 stop further calls
+          if (currentTxnPage === 1) {
+            document.getElementById("transactionsList").innerHTML =
+              "<p>No transactions found.</p>";
+          } else {
+            document
+              .getElementById("transactionsList")
+              .insertAdjacentHTML(
+                "beforeend",
+                "<p class='end-msg'>No more transactions found.</p>"
+              );
+          }
+        }
+      })
+      .finally(() => {
+        txnLoading = false;
+        document.getElementById("transactionsLoader").style.display = "none";
+      });
+  }
+  let hasMoreNum = true; // global flag
+
+  function loadNumbers(userId) {
+    if (numLoading || !hasMoreNum) return; // stop if already loading OR no more data
+    numLoading = true;
+    document.getElementById("numbersLoader").style.display = "block";
+
+    fetch(`/admin/users/${userId}/numbers/data?page=${currentNumPage}`)
+      .then((res) => res.text())
+      .then((html) => {
+        if (html.trim() !== "") {
+          document
+            .getElementById("numbersList")
+            .insertAdjacentHTML("beforeend", html);
+          currentNumPage++;
+        } else {
+          hasMoreNum = false; // 🚫 stop future calls
+          if (currentNumPage === 1) {
+            document.getElementById("numbersList").innerHTML =
+              "<p>No numbers found.</p>";
+          } else {
+            document
+              .getElementById("numbersList")
+              .insertAdjacentHTML(
+                "beforeend",
+                "<p class='end-msg'>No more results.</p>"
+              );
+          }
+        }
+      })
+      .finally(() => {
+        numLoading = false;
+        document.getElementById("numbersLoader").style.display = "none";
+      });
+  }
+
+  // ✅ Attach scroll listener to LIST (not modal)
+  document
+    .getElementById("transactionsList")
+    .addEventListener("scroll", function () {
+      if (this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
+        loadTransactions("{{ user.id }}");
+      }
+    });
+
+  document
+    .getElementById("numbersList")
+    .addEventListener("scroll", function () {
+      if (this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
+        loadNumbers("{{ user.id }}");
+      }
+    });
 </script>
 
 {% endblock %}

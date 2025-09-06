@@ -93,7 +93,7 @@ def otp_worker():
                             user.save()
                             Transaction(
                                 user=user,
-                                type="credit",
+                                type=f"refund issued for not using mobile number {order.number}",
                                 amount=order.price,
                                 closing_balance=user.balance,
                                 note=f"timeout_refund:{order.id}"
