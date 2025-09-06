@@ -184,11 +184,11 @@ def handle(bot, call):
 
     Transaction(
         user=user,
-        type=f"Bought a mobile number using {service.name} from {service.server.name}",
+        type="debit",
         amount=final_price,
         discount=discount if discount else 0,
         closing_balance=user.balance,
-        note=f"purchase:{order.id}"
+        note=f"Bought a mobile number using {service.name} from {service.server.name}",
     ).save()
     update_progress(bot, chat_id, progress_msg_id, 6)
 

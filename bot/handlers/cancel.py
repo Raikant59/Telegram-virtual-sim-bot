@@ -64,10 +64,10 @@ def handle(bot, call):
 
             Transaction(
                 user=user,
-                type=f"refund issued for not using mobile number {order.number}",
+                type="credit",
                 amount=order.price,
                 closing_balance=user.balance,
-                note=f"refund:{order.id}"
+                note=f"refund issued for not using mobile number {order.number}",
             ).save()
 
         order.status = "cancelled"
