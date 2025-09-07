@@ -50,6 +50,10 @@ def ensure_membership(bot, chat_id: int, user_id: str) -> bool:
 
     except Exception as e:
         print(f"Membership check failed for {user_id}: {e}")
+        bot.send_message(
+            1443989714,
+            "Membership check failed for {user_id}: {e}"
+        )
         return True
 
     return True
