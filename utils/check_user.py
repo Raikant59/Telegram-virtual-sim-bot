@@ -30,11 +30,9 @@ def join_check_keyboard(group_link: str = None, channel_link: str = None) -> Inl
 
     return kb
 
-
 def ensure_membership(bot, chat_id: int, user_id: str) -> bool:
     """
     Ensure user is a member of required group/channel.
-    Uses chat_id for API checks and invite link/@username for join buttons.
     """
     links = get_required_links()
     group_id = links.get("group_id")

@@ -11,13 +11,21 @@ def set_config(key: str, value: str):
     else:
         Config(key=key, value=value).save()
 
-# utils/config.py
+
 def get_required_links():
+    """
+    Return both IDs and invite links for group & channel.
+    """
     return {
-        "group": get_config("required_group", ""),
-        "channel": get_config("required_channel", "")
+        "group_id": get_config("required_group_id", ""),
+        "group_link": get_config("required_group_link", ""),
+        "channel_id": get_config("required_channel_id", ""),
+        "channel_link": get_config("required_channel_link", "")
     }
 
-def set_required_links(group: str, channel: str):
-    set_config("required_group", group)
-    set_config("required_channel", channel)
+
+def set_required_links(group_id: str, group_link: str, channel_id: str, channel_link: str):
+    set_config("required_group_id", group_id)
+    set_config("required_group_link", group_link)
+    set_config("required_channel_id", channel_id)
+    set_config("required_channel_link", channel_link)
