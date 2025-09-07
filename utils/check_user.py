@@ -1,13 +1,15 @@
 from utils.config import get_required_links
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from cachetools import TTLCache
 from telebot import apihelper
 import logging
+import redis
+import json
+import time
 
 logger = logging.getLogger(__name__)
 
-# cache: key=(user_id, chat_id), value=status, expires in 300s
-membership_cache = TTLCache(maxsize=10000, ttl=300)
+# Connect to Redis (local instance)
+r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
 
 
 def join_check_keyboard(group_link: str = None, channel_link: str = None) -> InlineKeyboardMarkup:
@@ -30,9 +32,26 @@ def join_check_keyboard(group_link: str = None, channel_link: str = None) -> Inl
 
     return kb
 
+
+def cache_get_status(user_id: str, chat_id: str):
+    """Retrieve membership status from Redis cache."""
+    key = f"membership:{user_id}:{chat_id}"
+    data = r.get(key)
+    if data:
+        return json.loads(data).get("status")
+    return None
+
+
+def cache_set_status(user_id: str, chat_id: str, status: str, ttl: int = 300):
+    """Store membership status in Redis with TTL."""
+    key = f"membership:{user_id}:{chat_id}"
+    r.setex(key, ttl, json.dumps({"status": status, "ts": int(time.time())}))
+
+
 def ensure_membership(bot, chat_id: int, user_id: str) -> bool:
     """
     Ensure user is a member of required group/channel.
+    Cached in Redis for 300s.
     """
     links = get_required_links()
     group_id = links.get("group_id")
@@ -45,12 +64,13 @@ def ensure_membership(bot, chat_id: int, user_id: str) -> bool:
 
     try:
         for target_id, invite_link in required_chats:
-            cache_key = (user_id, target_id)
+            # Check Redis first
+            status = cache_get_status(user_id, target_id)
 
-            status = membership_cache.get(cache_key)
             if status is None:
+                # Call Telegram API if not cached
                 status = bot.get_chat_member(target_id, user_id).status
-                membership_cache[cache_key] = status
+                cache_set_status(user_id, target_id, status)
 
             if status in {"left", "kicked"}:
                 bot.send_message(
