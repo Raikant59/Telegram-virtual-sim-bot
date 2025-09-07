@@ -10,6 +10,13 @@ from models.admin import Admin
 from bot.libs.Admin_message import purchase_text
 from services.promos import apply_discount_for_service, consume_reserved_promo
 
+def unavailable_markup(service_id):
+    markup = InlineKeyboardMarkup()
+    markup.row(
+        InlineKeyboardButton(text="🔁 Try Again", callback_data=f"purchase:{service_id}"),
+    )
+    return markup
+
 
 def update_progress(bot, chat_id, message_id, step):
     """Update progress bar based on step number (1-6)."""
@@ -91,7 +98,7 @@ def handle(bot, call):
     try:
         url = connect.get_number_url.format(service_code=service.code)
     except Exception:
-        bot.send_message(chat_id, "🚫 Number not available on this  service.")
+        bot.send_message(chat_id, "🚫 Number not available on this service.", reply_markup=unavailable_markup(service_id))
         bot.answer_callback_query(call["id"], "🚫 Number not available on this  service.")
         if progress_msg_id:
             try:
@@ -107,7 +114,8 @@ def handle(bot, call):
         response.raise_for_status()
         raw = response.text
     except Exception as e:
-        bot.send_message(chat_id, f"🚫 Number not available on this  service")
+        bot.send_message(chat_id, "🚫 Number not available on this service.", reply_markup=unavailable_markup(service_id))
+
         bot.answer_callback_query(call["id"], "🚫 Number not available on this  service")
         if progress_msg_id:
             try:
@@ -125,7 +133,7 @@ def handle(bot, call):
             provider_order_id, number = parts[1], parts[2]
             parsed = {"id": provider_order_id, "phone": number}
         else:
-            bot.send_message(chat_id, "🚫 Number not available on this  service.")
+            bot.send_message(chat_id, "🚫 Number not available on this service.", reply_markup=unavailable_markup(service_id))
             if progress_msg_id:
                 try:
                     bot.delete_message(chat_id, progress_msg_id)
@@ -138,7 +146,8 @@ def handle(bot, call):
             provider_order_id = str(parsed.get("id") or parsed.get("order_id") or "")
             number = parsed.get("phone") or parsed.get("number")
             if not provider_order_id or not number:
-                bot.send_message(chat_id, "🚫 Number not available on this  service.")
+                bot.send_message(chat_id, "🚫 Number not available on this service.", reply_markup=unavailable_markup(service_id))
+
                 if progress_msg_id:
                     try:
                         bot.delete_message(chat_id, progress_msg_id)
@@ -151,7 +160,7 @@ def handle(bot, call):
                     bot.delete_message(chat_id, progress_msg_id)
                 except:
                     pass
-            bot.send_message(chat_id, "🚫 Number not available on this  service.")
+            bot.send_message(chat_id, "🚫 Number not available on this service.", reply_markup=unavailable_markup(service_id))
             return
     update_progress(bot, chat_id, progress_msg_id, 5)
 

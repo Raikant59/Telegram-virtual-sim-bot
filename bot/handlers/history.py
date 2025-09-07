@@ -11,19 +11,24 @@ PAGE_SIZE = 3  # orders per page
 def format_order(order):
     """Format a single order with OTP/messages."""
     lines = []
+    otps = OtpMessage.objects(order=order).order_by("created_at")
     when = order.created_at.strftime("%Y-%m-%d %I:%M %p")
     lines.append(f"📅 <b>Date:</b> {when}")
     lines.append(f"💳 <b>Price:</b> {order.price:.2f}")
     lines.append(f"📞 <b>Number:</b> {order.number}")
     lines.append(f"🆔 <b>Order ID:</b> {order.id}")
-    lines.append(f"📌 <b>Status:</b> {order.status.capitalize()}")
-    if hasattr(order, "refund"):
-        lines.append(f"💰 <b>Refund:</b> {order.refund}")
+    if not otps:
+        lines.append(f"📌 <b>Status:</b> {order.status.capitalize()}")
     else:
-        lines.append(f"💰 <b>Refund:</b> N/A")
+        lines.append(f"📌 <b>Status:</b> Completed")
+    lines.append(f"⚜️ <b>Service:</b> {order.service.name}")
+    lines.append(f"🔅 <b>Server:</b> {order.server.name}")
+    # if hasattr(order, "refund"):
+    #     lines.append(f"💰 <b>Refund:</b> {order.refund}")
+    # else:
+    #     lines.append(f"💰 <b>Refund:</b> N/A")
 
     # OTP messages
-    otps = OtpMessage.objects(order=order).order_by("created_at")
     if not otps:
         lines.append("✉️ <b>Messages:</b> No OTP received")
     else:
@@ -50,7 +55,7 @@ def build_history_message(user, page=1):
     lines = [f"📖 <b>Order History — Page {page} of {pages}</b>\n"]
     for o in orders:
         lines.append(format_order(o))
-        lines.append("─" * 30)
+        lines.append("─" * 23)
 
     # Pagination buttons
     kb = InlineKeyboardMarkup()

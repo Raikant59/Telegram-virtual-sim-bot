@@ -10,19 +10,20 @@ PAGE_SIZE = 5  # orders per page
 
 def format_order(order):
     """Format one order with OTPs/messages."""
+    otps = OtpMessage.objects(order=order).order_by("created_at")
     lines = []
     lines.append(f"📅 Bought On: {order.created_at.strftime('%m/%d/%Y, %I:%M:%S %p')}")
     lines.append(f"💳 Price: {order.price:.2f}")
     lines.append(f"📞 Number: {order.number}")
     lines.append(f"🆔 Order ID: {order.id}")
-    lines.append(f"📌 Status: {order.status.capitalize()}")
-    if hasattr(order, "refund"):
-        lines.append(f"💰 Refund: {order.refund}")
+    if not otps:
+        lines.append(f"📌 <b>Status:</b> {order.status.capitalize()}")
     else:
-        lines.append("💰 Refund: N/A")
+        lines.append(f"📌 <b>Status:</b> Completed")
+    lines.append(f"⚜️ <b>Service:</b> {order.service.name}")
+    lines.append(f"🔅 <b>Server:</b> {order.server.name}")
 
-    # OTP messages
-    otps = OtpMessage.objects(order=order).order_by("created_at")
+    # OTP messages (if any)
     if not otps:
         lines.append("✉️ Messages: No OTP received")
     else:
@@ -51,7 +52,7 @@ def build_numbers_message(user, page=1):
     msg_lines = [f"📖 <b>Orders for {user.telegram_id}</b> — Page {page} of {pages}\n"]
     for order in orders:
         msg_lines.append(format_order(order))
-        msg_lines.append("─" * 30)
+        msg_lines.append("─" * 23)
 
     # build inline keyboard
     kb = types.InlineKeyboardMarkup()

@@ -17,7 +17,22 @@
     <div style="font-size: 16px; font-weight: 700; color: #111827;">
       📞 {{ o.number }}
     </div>
-    {% if o.status in ["cancelled", "refunded"] %}
+
+    {% if otp_map.get(o.id|string) %}
+    <!-- If OTP exists = Green -->
+    <span style="
+      font-size: 12px;
+      background: #d1fae5;
+      color: #047857;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    ">
+      COMPLETED
+    </span>
+
+    {% elif o.status in ["cancelled", "refunded"] %}
+    <!-- Cancelled/Refunded = Red -->
     <span style="
       font-size: 12px;
       background: #fee2e2;
@@ -28,11 +43,13 @@
     ">
       {{ o.status|capitalize }}
     </span>
+
     {% else %}
+    <!-- Default = Gray -->
     <span style="
       font-size: 12px;
-      background: #d1fae5;
-      color: #047857;
+      background: #f3f4f6;
+      color: #374151;
       padding: 4px 10px;
       border-radius: 999px;
       font-weight: 600;

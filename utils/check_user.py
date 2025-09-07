@@ -49,7 +49,7 @@ def ensure_membership(bot, chat_id: int, user_id: str) -> bool:
                 return False
 
     except Exception as e:
-        bot.logger.warning(f"Membership check failed for {user_id}: {e}")
+        print(f"Membership check failed for {user_id}: {e}")
         return True
 
     return True

@@ -84,15 +84,9 @@ def handle(bot, call):
     else:
         text += f"✅ <b>Your Order Successfully</b>\n<i>+{pending_otp.phone}\n\nThere is no refund as the number is used </i>"
 
-    markup = types.InlineKeyboardMarkup()
-    markup.row(
-            types.InlineKeyboardButton(
-                text="Buy Again →",
-                callback_data=f"purchase:{order.service.service_id}"
-            )
-        )
+    
 
-    bot.send_message(call["message"]["chat"]["id"], text, reply_markup=markup)
+    bot.send_message(call["message"]["chat"]["id"], text)
     bot.answer_callback_query(call["id"], "✅ Cancelled.")
     # notify admins
     admins = Admin.objects()
