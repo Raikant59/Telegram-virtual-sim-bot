@@ -244,16 +244,23 @@ ul li button:hover {
       <button type="submit"><i class="fa-solid fa-save"></i> Save</button>
     </form>
 
-    <h3>📢 Join Requirement</h3>
-  <form method="POST">
-    <label>Required Group Link:</label>
-    <input type="text" name="required_group" value="{{ required_group }}">
-    
-    <label>Required Channel Link:</label>
-    <input type="text" name="required_channel" value="{{ required_channel }}">
-    
-    <button type="submit"><i class="fa-solid fa-save"></i> Save</button>
-  </form>
+   <h3>📢 Join Requirement</h3>
+<form method="POST">
+  <label>Required Group ID:</label>
+  <input type="text" name="required_group_id" value="{{ required_group_id }}" placeholder="-100xxxxxxxxxx">
+
+  <label>Required Group Invite Link:</label>
+  <input type="text" name="required_group_link" value="{{ required_group_link }}" placeholder="https://t.me/+xxxx">
+
+  <label>Required Channel ID:</label>
+  <input type="text" name="required_channel_id" value="{{ required_channel_id }}" placeholder="-100yyyyyyyyyy">
+
+  <label>Required Channel Invite Link:</label>
+  <input type="text" name="required_channel_link" value="{{ required_channel_link }}" placeholder="https://t.me/+zzzz">
+
+  <button type="submit"><i class="fa-solid fa-save"></i> Save</button>
+</form>
+
 
 
     <hr>

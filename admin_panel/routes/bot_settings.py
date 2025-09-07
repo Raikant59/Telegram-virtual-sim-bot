@@ -6,7 +6,6 @@ from utils.config import get_config, set_config
 
 bot_settings_bp = Blueprint("bot_settings", __name__, template_folder="../templates", static_folder="../static")
 
-
 @bot_settings_bp.route("/", methods=["GET", "POST"])
 def bot_settings():
     if request.method == "POST":
@@ -14,16 +13,24 @@ def bot_settings():
         support_url = request.form.get("support_url")
         if support_url is not None:
             set_config("support_url", support_url)
-        # inside POST handling
-        required_group = request.form.get("required_group")
-        required_channel = request.form.get("required_channel")
-        if required_group is not None:
-            set_config("required_group", required_group)
-        if required_channel is not None:
-            set_config("required_channel", required_channel)
 
+        # Required group/channel
+        required_group_id = request.form.get("required_group_id")
+        required_group_link = request.form.get("required_group_link")
+        required_channel_id = request.form.get("required_channel_id")
+        required_channel_link = request.form.get("required_channel_link")
 
-        # Add new admin
+        if required_group_id:
+            set_config("required_group_id", required_group_id.strip())
+        if required_group_link:
+            set_config("required_group_link", required_group_link.strip())
+
+        if required_channel_id:
+            set_config("required_channel_id", required_channel_id.strip())
+        if required_channel_link:
+            set_config("required_channel_link", required_channel_link.strip())
+
+        # Add / Remove admins
         new_admin_id = request.form.get("new_admin_id")
         new_admin_name = request.form.get("new_admin_name")
         if new_admin_id:
@@ -33,7 +40,6 @@ def bot_settings():
                 upsert=True
             )
 
-        # Remove admin
         remove_id = request.form.get("remove_id")
         if remove_id:
             Admin.objects(telegram_id=remove_id).delete()
@@ -45,13 +51,17 @@ def bot_settings():
     orders_count = Order.objects.count()
     current_url = get_config("support_url", "")
     admins = Admin.objects()
-    current_group = get_config("required_group", "")
-    current_channel = get_config("required_channel", "")
-    return render_template("bot_settings.html",
-                        users_count=users_count,
-                        orders_count=orders_count,
-                        support_url=current_url,
-                        admins=admins,
-                        required_group=current_group,
-                        required_channel=current_channel)
+    current_group_id = get_config("required_group_id", "")
+    current_group_link = get_config("required_group_link", "")
+    current_channel_id = get_config("required_channel_id", "")
+    current_channel_link = get_config("required_channel_link", "")
 
+    return render_template("bot_settings.html",
+                           users_count=users_count,
+                           orders_count=orders_count,
+                           support_url=current_url,
+                           admins=admins,
+                           required_group_id=current_group_id,
+                           required_group_link=current_group_link,
+                           required_channel_id=current_channel_id,
+                           required_channel_link=current_channel_link)
