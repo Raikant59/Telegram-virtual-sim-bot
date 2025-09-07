@@ -170,4 +170,6 @@ def apply_discount_for_service(user: User, service, base_price: float):
 
 def consume_reserved_promo(pr: PromoRedemption, service):
     """Mark reserved promo as consumed after successful purchase."""
+    if( pr.promo.type == "SPECIAL"):
+        return
     pr.update(status='consumed', service_id=getattr(service, 'service_id', None), consumed_at=_now())

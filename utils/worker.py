@@ -65,6 +65,12 @@ def otp_worker():
                 break  # Stop if no jobs
 
             for otp in pending_otps:
+
+                order = Order.objects(provider_order_id=otp.order_id).first()
+                if not order or order.status in ("cancelled", "refunded", "completed"):
+                    otp.delete()
+                    continue
+
                 elapsed_time = (datetime.datetime.utcnow() - otp.created_at).total_seconds()
 
                 # =====================

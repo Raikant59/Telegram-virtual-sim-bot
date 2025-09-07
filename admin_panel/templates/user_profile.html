@@ -205,6 +205,161 @@ content %}
     font-size: 14px;
   }
   /* ===== Modal Styling ===== */
+  /* ===== Special Discount Modal (Improved) ===== */
+#discountModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  transition: opacity 0.25s ease-in-out;
+}
+
+/* Modal Content */
+#discountModal .modal-content {
+  background: #fff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px 22px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+  position: relative;
+  animation: fadeUp 0.25s ease-out;
+}
+
+/* Close button */
+#discountModal .close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 26px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
+}
+#discountModal .close:hover {
+  transform: scale(1.1);
+  color: #e74c3c;
+}
+
+/* Title */
+#discountModal h3 {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Labels */
+#discountModal label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+/* Inputs & selects */
+#discountModal input,
+#discountModal select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #fafafa;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#discountModal input:focus,
+#discountModal select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Submit button */
+#discountModal button[type="submit"] {
+  width: 100%;
+  margin-top: 18px;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #16a085, #1abc9c);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.25s, transform 0.2s;
+}
+#discountModal button[type="submit"]:hover {
+  background: linear-gradient(135deg, #149174, #16a085);
+  transform: translateY(-2px);
+}
+
+/* Active discounts list */
+#discountModal .active-discount {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+#discountModal .active-discount p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #444;
+}
+#discountModal .active-discount b {
+  color: #222;
+}
+#discountModal .active-discount button {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+#discountModal .active-discount button:hover {
+  transform: scale(1.2);
+}
+
+/* Animation */
+@keyframes fadeUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive: full bottom sheet on small screens */
+@media (max-width: 600px) {
+  #discountModal {
+    align-items: flex-end;
+  }
+  #discountModal .modal-content {
+    border-radius: 18px 18px 0 0;
+    max-width: 100%;
+    padding: 20px;
+  }
+}
+
   /* General Modal Overlay */
   .modal {
     display: none;

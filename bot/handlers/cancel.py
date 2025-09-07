@@ -53,7 +53,8 @@ def handle(bot, call):
         return
 
     # Find corresponding Order by provider_order_id and refund if needed
-    
+    order.status = "cancelled"
+    order.save()
         
     isRefund = not OtpMessage.objects(order=order).count() > 0
     user = order.user
@@ -69,9 +70,6 @@ def handle(bot, call):
                 closing_balance=user.balance,
                 note=f"refund issued for not using mobile number {order.number}",
             ).save()
-
-        order.status = "cancelled"
-        order.save()
 
     user.reload()
 
